@@ -14,8 +14,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
   PSX: {
     en: [
       {
-        prompt: 'Ramallah is the de facto administrative capital of…',
-        choices: ['Palestine', 'Jordan', 'Lebanon'],
+        prompt: 'Olive groves and olive oil are staples of…',
+        choices: ['Palestinian / Levantine cuisine', 'Icelandic cuisine', 'Mongolian cuisine'],
         correct: 0,
       },
       {
@@ -31,8 +31,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     es: [
       {
-        prompt: 'Ramala es la capital administrativa de facto de…',
-        choices: ['Palestina', 'Jordania', 'Líbano'],
+        prompt: 'Los olivos y el aceite de oliva son básicos en la cocina…',
+        choices: ['palestina / levantina', 'islandesa', 'mongola'],
         correct: 0,
       },
       {
@@ -48,8 +48,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ru: [
       {
-        prompt: 'Рамалла — де-факто административная столица…',
-        choices: ['Палестины', 'Иордании', 'Ливана'],
+        prompt: 'Оливки и оливковое масло — основа кухни…',
+        choices: ['палестинской / левантийской', 'исландской', 'монгольской'],
         correct: 0,
       },
       {
@@ -65,8 +65,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     zh: [
       {
-        prompt: '拉姆安拉是事实上的行政首都，属于…',
-        choices: ['巴勒斯坦', '约旦', '黎巴嫩'],
+        prompt: '橄榄与橄榄油是…饮食的主食',
+        choices: ['巴勒斯坦 / 黎凡特', '冰岛', '蒙古'],
         correct: 0,
       },
       {
@@ -82,8 +82,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ja: [
       {
-        prompt: 'ラマッラーは事実上の行政首都で…のもの',
-        choices: ['パレスチナ', 'ヨルダン', 'レバノン'],
+        prompt: 'オリーブとオリーブオイルが食の基本なのは…',
+        choices: ['パレスチナ／レバント', 'アイスランド', 'モンゴル'],
         correct: 0,
       },
       {
@@ -190,8 +190,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
   CYN: {
     en: [
       {
-        prompt: 'North Nicosia is the capital of…',
-        choices: ['Northern Cyprus', 'Greece', 'Lebanon'],
+        prompt: 'Northern Cyprus mainly uses which currency?',
+        choices: ['Turkish lira', 'euro only', 'pound sterling only'],
         correct: 0,
       },
       {
@@ -207,8 +207,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     es: [
       {
-        prompt: 'Nicosia Norte es la capital de…',
-        choices: ['Chipre del Norte', 'Grecia', 'Líbano'],
+        prompt: 'Chipre del Norte usa principalmente…',
+        choices: ['la lira turca', 'solo el euro', 'solo la libra'],
         correct: 0,
       },
       {
@@ -224,8 +224,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ru: [
       {
-        prompt: 'Северная Никосия — столица…',
-        choices: ['Северного Кипра', 'Греции', 'Ливана'],
+        prompt: 'В Северном Кипре в основном в ходу…',
+        choices: ['турецкая лира', 'только евро', 'только фунт'],
         correct: 0,
       },
       {
@@ -241,8 +241,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     zh: [
       {
-        prompt: '北尼科西亚是…的首都',
-        choices: ['北塞浦路斯', '希腊', '黎巴嫩'],
+        prompt: '北塞浦路斯主要使用哪种货币？',
+        choices: ['土耳其里拉', '仅欧元', '仅英镑'],
         correct: 0,
       },
       {
@@ -258,8 +258,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ja: [
       {
-        prompt: '北ニコシアは…の首都',
-        choices: ['北キプロス', 'ギリシャ', 'レバノン'],
+        prompt: '北キプロスで主に使われる通貨は…',
+        choices: ['トルコリラ', 'ユーロのみ', 'ポンドのみ'],
         correct: 0,
       },
       {
@@ -278,8 +278,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
   FLK: {
     en: [
       {
-        prompt: 'Stanley is the capital of the…',
-        choices: ['Falkland Islands', 'Azores', 'Canary Islands'],
+        prompt: 'The Falklands sit in the…',
+        choices: ['South Atlantic', 'Caribbean', 'North Sea'],
         correct: 0,
       },
       {
@@ -295,8 +295,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     es: [
       {
-        prompt: 'Puerto Argentino / Stanley es la capital de las…',
-        choices: ['Islas Malvinas', 'Azores', 'Canarias'],
+        prompt: 'Las Malvinas están en el…',
+        choices: ['Atlántico Sur', 'Caribe', 'Mar del Norte'],
         correct: 0,
       },
       {
@@ -312,8 +312,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ru: [
       {
-        prompt: 'Стэнли — столица…',
-        choices: ['Фолклендских островов', 'Азорских островов', 'Канарских островов'],
+        prompt: 'Фолкленды лежат в…',
+        choices: ['южной Атлантике', 'Карибском море', 'Северном море'],
         correct: 0,
       },
       {
@@ -329,8 +329,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     zh: [
       {
-        prompt: '斯坦利是…的首府',
-        choices: ['福克兰群岛', '亚速尔群岛', '加那利群岛'],
+        prompt: '福克兰／马尔维纳斯群岛位于…',
+        choices: ['南大西洋', '加勒比海', '北海'],
         correct: 0,
       },
       {
@@ -346,8 +346,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ja: [
       {
-        prompt: 'スタンリーは…の首都',
-        choices: ['フォークランド諸島', 'アゾレス諸島', 'カナリア諸島'],
+        prompt: 'フォークランド／マルビナス諸島があるのは…',
+        choices: ['南大西洋', 'カリブ海', '北海'],
         correct: 0,
       },
       {
@@ -366,8 +366,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
   PRI: {
     en: [
       {
-        prompt: 'San Juan is the capital of…',
-        choices: ['Puerto Rico', 'Cuba', 'Dominican Republic'],
+        prompt: 'Puerto Rico is a…',
+        choices: ['U.S. territory in the Caribbean', 'sovereign Andean republic', 'Pacific French collectivity'],
         correct: 0,
       },
       {
@@ -383,8 +383,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     es: [
       {
-        prompt: 'San Juan es la capital de…',
-        choices: ['Puerto Rico', 'Cuba', 'República Dominicana'],
+        prompt: 'Puerto Rico es…',
+        choices: ['un territorio de EE. UU. en el Caribe', 'una república andina soberana', 'una colectividad francesa del Pacífico'],
         correct: 0,
       },
       {
@@ -400,8 +400,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ru: [
       {
-        prompt: 'Сан-Хуан — столица…',
-        choices: ['Пуэрто-Рико', 'Кубы', 'Доминиканской Республики'],
+        prompt: 'Пуэрто-Рико — это…',
+        choices: ['территория США в Карибском море', 'суверенная андская республика', 'французская тихоокеанская территория'],
         correct: 0,
       },
       {
@@ -417,8 +417,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     zh: [
       {
-        prompt: '圣胡安是…的首府',
-        choices: ['波多黎各', '古巴', '多米尼加共和国'],
+        prompt: '波多黎各是…',
+        choices: ['加勒比海的美国领地', '主权安第斯共和国', '太平洋法属领地'],
         correct: 0,
       },
       {
@@ -434,8 +434,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ja: [
       {
-        prompt: 'サンフアンは…の首都',
-        choices: ['プエルトリコ', 'キューバ', 'ドミニカ共和国'],
+        prompt: 'プエルトリコは…',
+        choices: ['カリブ海の米国領', '主権を持つアンデス共和国', '太平洋のフランス領'],
         correct: 0,
       },
       {
@@ -454,8 +454,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
   NCL: {
     en: [
       {
-        prompt: 'Nouméa is the capital of…',
-        choices: ['New Caledonia', 'Fiji', 'Vanuatu'],
+        prompt: 'New Caledonia is a major world source of…',
+        choices: ['nickel', 'maple syrup', 'cork'],
         correct: 0,
       },
       {
@@ -471,8 +471,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     es: [
       {
-        prompt: 'Numea es la capital de…',
-        choices: ['Nueva Caledonia', 'Fiyi', 'Vanuatu'],
+        prompt: 'Nueva Caledonia es una gran fuente mundial de…',
+        choices: ['níquel', 'jarabe de arce', 'corcho'],
         correct: 0,
       },
       {
@@ -488,8 +488,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ru: [
       {
-        prompt: 'Нумеа — столица…',
-        choices: ['Новой Каледонии', 'Фиджи', 'Вануату'],
+        prompt: 'Новая Каледония — крупный мировой источник…',
+        choices: ['никеля', 'кленового сиропа', 'пробки'],
         correct: 0,
       },
       {
@@ -505,8 +505,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     zh: [
       {
-        prompt: '努美阿是…的首府',
-        choices: ['新喀里多尼亚', '斐济', '瓦努阿图'],
+        prompt: '新喀里多尼亚是世界重要的…产地',
+        choices: ['镍', '枫糖浆', '软木'],
         correct: 0,
       },
       {
@@ -522,8 +522,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ja: [
       {
-        prompt: 'ヌメアは…の首都',
-        choices: ['ニューカレドニア', 'フィジー', 'バヌアツ'],
+        prompt: 'ニューカレドニアは世界有数の…産地',
+        choices: ['ニッケル', 'メープルシロップ', 'コルク'],
         correct: 0,
       },
       {
@@ -542,8 +542,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
   KOS: {
     en: [
       {
-        prompt: 'Pristina is the capital of…',
-        choices: ['Kosovo', 'Albania', 'Serbia'],
+        prompt: 'Kosovo is a landlocked territory in the…',
+        choices: ['Balkans', 'Caucasus', 'Baltic'],
         correct: 0,
       },
       {
@@ -559,8 +559,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     es: [
       {
-        prompt: 'Pristina es la capital de…',
-        choices: ['Kosovo', 'Albania', 'Serbia'],
+        prompt: 'Kosovo es un territorio sin litoral en los…',
+        choices: ['Balcanes', 'Cáucaso', 'Bálticos'],
         correct: 0,
       },
       {
@@ -576,8 +576,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ru: [
       {
-        prompt: 'Приштина — столица…',
-        choices: ['Косово', 'Албании', 'Сербии'],
+        prompt: 'Косово — не имеющая выхода к морю территория на…',
+        choices: ['Балканах', 'Кавказе', 'Балтике'],
         correct: 0,
       },
       {
@@ -593,8 +593,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     zh: [
       {
-        prompt: '普里什蒂纳是…的首都',
-        choices: ['科索沃', '阿尔巴尼亚', '塞尔维亚'],
+        prompt: '科索沃是…的内陆地区',
+        choices: ['巴尔干', '高加索', '波罗的海'],
         correct: 0,
       },
       {
@@ -610,8 +610,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ja: [
       {
-        prompt: 'プリシュティナは…の首都',
-        choices: ['コソボ', 'アルバニア', 'セルビア'],
+        prompt: 'コソボは…の内陸地域',
+        choices: ['バルカン', 'コーカサス', 'バルト'],
         correct: 0,
       },
       {
@@ -630,8 +630,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
   SOL: {
     en: [
       {
-        prompt: 'Hargeisa is the capital of…',
-        choices: ['Somaliland', 'Somalia (Mogadishu)', 'Djibouti'],
+        prompt: 'Somaliland sits on the…',
+        choices: ['Gulf of Aden / Horn of Africa', 'Cape of Good Hope', 'Maghreb coast'],
         correct: 0,
       },
       {
@@ -647,8 +647,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     es: [
       {
-        prompt: 'Hargeisa es la capital de…',
-        choices: ['Somalilandia', 'Somalia (Mogadiscio)', 'Yibuti'],
+        prompt: 'Somalilandia se sitúa en el…',
+        choices: ['golfo de Adén / Cuerno de África', 'Cabo de Buena Esperanza', 'litoral magrebí'],
         correct: 0,
       },
       {
@@ -664,8 +664,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ru: [
       {
-        prompt: 'Харгейса — столица…',
-        choices: ['Сомалиленда', 'Сомали (Могадишо)', 'Джибути'],
+        prompt: 'Сомалиленд лежит у…',
+        choices: ['Аденского залива / Африканского Рога', 'Мыса Доброй Надежды', 'магрибского побережья'],
         correct: 0,
       },
       {
@@ -681,8 +681,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     zh: [
       {
-        prompt: '哈尔格萨是…的首都',
-        choices: ['索马里兰', '索马里（摩加迪沙）', '吉布提'],
+        prompt: '索马里兰位于…',
+        choices: ['亚丁湾／非洲之角', '好望角', '马格里布沿岸'],
         correct: 0,
       },
       {
@@ -698,8 +698,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ja: [
       {
-        prompt: 'ハルゲイサは…の首都',
-        choices: ['ソマリランド', 'ソマリア（モガディシュ）', 'ジブチ'],
+        prompt: 'ソマリランドがあるのは…',
+        choices: ['アデン湾／アフリカの角', '喜望峰', 'マグリブ沿岸'],
         correct: 0,
       },
       {
@@ -718,8 +718,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
   TWN: {
     en: [
       {
-        prompt: 'Taipei is the capital of…',
-        choices: ['Taiwan', 'China', 'Philippines'],
+        prompt: 'Taiwan is a global leader in…',
+        choices: ['semiconductor manufacturing', 'oil drilling only', 'diamond mining'],
         correct: 0,
       },
       {
@@ -735,8 +735,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     es: [
       {
-        prompt: 'Taipéi es la capital de…',
-        choices: ['Taiwán', 'China', 'Filipinas'],
+        prompt: 'Taiwán es líder mundial en…',
+        choices: ['fabricación de semiconductores', 'solo perforación petrolera', 'minería de diamantes'],
         correct: 0,
       },
       {
@@ -752,8 +752,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ru: [
       {
-        prompt: 'Тайбэй — столица…',
-        choices: ['Тайваня', 'Китая', 'Филиппин'],
+        prompt: 'Тайвань — мировой лидер в…',
+        choices: ['производстве полупроводников', 'только нефтедобыче', 'добыче алмазов'],
         correct: 0,
       },
       {
@@ -769,8 +769,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     zh: [
       {
-        prompt: '台北是…的首都',
-        choices: ['台湾', '中国', '菲律宾'],
+        prompt: '台湾是全球…的领先者',
+        choices: ['半导体制造', '仅石油钻探', '钻石开采'],
         correct: 0,
       },
       {
@@ -786,8 +786,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ja: [
       {
-        prompt: '台北は…の首都',
-        choices: ['台湾', '中国', 'フィリピン'],
+        prompt: '台湾が世界をリードしているのは…',
+        choices: ['半導体製造', '石油掘削のみ', 'ダイヤモンド採掘'],
         correct: 0,
       },
       {
@@ -806,8 +806,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
   CYP: {
     en: [
       {
-        prompt: 'Nicosia is the capital of…',
-        choices: ['Cyprus', 'Malta', 'Crete'],
+        prompt: 'Halloumi cheese is strongly associated with…',
+        choices: ['Cyprus', 'France', 'Japan'],
         correct: 0,
       },
       {
@@ -823,8 +823,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     es: [
       {
-        prompt: 'Nicosia es la capital de…',
-        choices: ['Chipre', 'Malta', 'Creta'],
+        prompt: 'El queso halloumi se asocia sobre todo con…',
+        choices: ['Chipre', 'Francia', 'Japón'],
         correct: 0,
       },
       {
@@ -840,8 +840,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ru: [
       {
-        prompt: 'Никосия — столица…',
-        choices: ['Кипра', 'Мальты', 'Крита'],
+        prompt: 'Сыр халлуми тесно связан с…',
+        choices: ['Кипром', 'Францией', 'Японией'],
         correct: 0,
       },
       {
@@ -857,8 +857,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     zh: [
       {
-        prompt: '尼科西亚是…的首都',
-        choices: ['塞浦路斯', '马耳他', '克里特'],
+        prompt: '哈鲁米奶酪最常与…联系在一起',
+        choices: ['塞浦路斯', '法国', '日本'],
         correct: 0,
       },
       {
@@ -874,8 +874,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ja: [
       {
-        prompt: 'ニコシアは…の首都',
-        choices: ['キプロス', 'マルタ', 'クレタ'],
+        prompt: 'ハルミチーズといえば…',
+        choices: ['キプロス', 'フランス', '日本'],
         correct: 0,
       },
       {
@@ -894,8 +894,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
   GRL: {
     en: [
       {
-        prompt: 'Nuuk is the capital of…',
-        choices: ['Greenland', 'Iceland', 'Norway'],
+        prompt: 'Greenland is mostly covered by…',
+        choices: ['an ice sheet', 'tropical forest', 'desert dunes'],
         correct: 0,
       },
       {
@@ -911,8 +911,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     es: [
       {
-        prompt: 'Nuuk es la capital de…',
-        choices: ['Groenlandia', 'Islandia', 'Noruega'],
+        prompt: 'Groenlandia está cubierta en su mayor parte por…',
+        choices: ['un casquete de hielo', 'selva tropical', 'dunas del desierto'],
         correct: 0,
       },
       {
@@ -928,8 +928,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ru: [
       {
-        prompt: 'Нуук — столица…',
-        choices: ['Гренландии', 'Исландии', 'Норвегии'],
+        prompt: 'Гренландия в основном покрыта…',
+        choices: ['ледниковым щитом', 'тропическим лесом', 'пустынными дюнами'],
         correct: 0,
       },
       {
@@ -945,8 +945,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     zh: [
       {
-        prompt: '努克是…的首都',
-        choices: ['格陵兰', '冰岛', '挪威'],
+        prompt: '格陵兰大部分被…覆盖',
+        choices: ['冰盖', '热带森林', '沙漠沙丘'],
         correct: 0,
       },
       {
@@ -962,8 +962,8 @@ export const BRIEFING_BANK_DISPUTED: Record<string, LocalizedBank> = {
     ],
     ja: [
       {
-        prompt: 'ヌークは…の首都',
-        choices: ['グリーンランド', 'アイスランド', 'ノルウェー'],
+        prompt: 'グリーンランドの大部分を覆うのは…',
+        choices: ['氷床', '熱帯林', '砂漠の砂丘'],
         correct: 0,
       },
       {

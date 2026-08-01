@@ -562,8 +562,8 @@ export const BRIEFING_BANK: Record<string, BriefingQuestion[]> = {
       correct: 0,
     },
     {
-      prompt: 'Poland’s largest city and capital is…',
-      choices: ['Warsaw', 'Kraków', 'Gdańsk'],
+      prompt: 'Chopin is the national composer pride of…',
+      choices: ['Poland', 'Austria', 'Sweden'],
       correct: 0,
     },
   ],
@@ -625,22 +625,6 @@ function pickTwo<T>(items: T[]): [T, T] | null {
 export function generateBriefings(country: Country, pool: Country[]): BriefingQuestion[] {
   const out: BriefingQuestion[] = []
   const others = pool.filter((c) => c.id !== country.id)
-
-  if (country.capitalName) {
-    const capPool = [
-      ...new Set(
-        others.map((c) => c.capitalName).filter((n): n is string => !!n && n !== country.capitalName),
-      ),
-    ]
-    const wrong = pickTwo(capPool)
-    if (wrong) {
-      out.push({
-        prompt: `The capital of ${country.name} is…`,
-        choices: [country.capitalName, wrong[0], wrong[1]],
-        correct: 0,
-      })
-    }
-  }
 
   if (country.continent) {
     const continents = [
