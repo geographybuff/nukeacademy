@@ -1641,12 +1641,34 @@ export class Game {
     this.renderer.setSize(w, h, false)
   }
 
+  /** Warm fog / sky as scars pile up — Earth starts to look on fire past ~100 hits. */
+  private applyPlanetBurnLook() {
+    const burn = this.world.scars.burnLevel
+    const fog = this.scene.fog as THREE.FogExp2 | null
+    if (fog) {
+      // Cool void → smoky ember haze
+      fog.color.setRGB(
+        0.024 + burn * 0.16,
+        0.07 + burn * 0.02,
+        0.094 - burn * 0.05,
+      )
+      fog.density = 0.0016 + burn * 0.0014
+    }
+    const bg = this.scene.background
+    if (bg instanceof THREE.Color) {
+      bg.setRGB(0.02 + burn * 0.1, 0.055 + burn * 0.015, 0.078 - burn * 0.035)
+    }
+    this.fillLight.color.setRGB(0.35 + burn * 0.35, 0.56 - burn * 0.15, 0.66 - burn * 0.4)
+    this.fillLight.intensity = 0.65 + burn * 0.35
+  }
+
   private tick = (timestamp?: number) => {
     requestAnimationFrame(this.tick)
     this.timer.update(timestamp)
     const dt = Math.min(this.timer.getDelta(), 0.05)
 
     this.world.update(dt)
+    this.applyPlanetBurnLook()
 
     if (this.phase === 'flying') {
       this.plane.update(dt, this.keys)
