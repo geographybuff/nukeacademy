@@ -121,7 +121,8 @@ export class LoadoutSlider {
     this.renderer.dispose()
   }
 
-  private step(delta: number) {
+  /** Step left (-1) / right (+1). Used by click arrows, swipe, and keyboard. */
+  step(delta: number) {
     const next = (this.index + delta + this.items.length) % this.items.length
     if (next === this.index) return
     this.onInteract?.()

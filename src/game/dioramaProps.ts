@@ -982,8 +982,13 @@ export function makeStreetlight(): THREE.Group {
 
 /**
  * Crater bowl for the diorama floor — recessed pit + rim + rubble + scorch.
+ * Optional `rubble` meshes (Kenney / Quaternius rocks) replace procedural tetra chunks.
  */
-export function makeCraterBowl(radius = 1.6, ocean = false): THREE.Group {
+export function makeCraterBowl(
+  radius = 1.6,
+  ocean = false,
+  rubble: THREE.Object3D[] = [],
+): THREE.Group {
   const g = new THREE.Group()
 
   const stain = mesh(
@@ -999,21 +1004,29 @@ export function makeCraterBowl(radius = 1.6, ocean = false): THREE.Group {
   stain.position.y = 0.02
   g.add(stain)
 
-  const pit = mesh(
-    new THREE.CircleGeometry(radius * 0.55, 28),
-    std(ocean ? 0x061820 : 0x0c0806, {
+  // Recessed bowl (lathe) for depth instead of a flat disk
+  const bowlProfile = [
+    new THREE.Vector2(0, -radius * 0.22),
+    new THREE.Vector2(radius * 0.2, -radius * 0.2),
+    new THREE.Vector2(radius * 0.45, -radius * 0.12),
+    new THREE.Vector2(radius * 0.62, -0.02),
+    new THREE.Vector2(radius * 0.72, 0.04),
+  ]
+  const bowl = mesh(
+    new THREE.LatheGeometry(bowlProfile, 28),
+    std(ocean ? 0x061820 : 0x18100c, {
       emissive: ocean ? 0x0a3040 : 0xff2200,
-      em: ocean ? 0.1 : 0.45,
+      em: ocean ? 0.12 : 0.55,
+      roughness: 0.95,
       side: THREE.DoubleSide,
     }),
     false,
   )
-  pit.rotation.x = -Math.PI / 2
-  pit.position.y = 0.025
-  g.add(pit)
+  bowl.position.y = 0.04
+  g.add(bowl)
 
   const rim = mesh(
-    new THREE.TorusGeometry(radius * 0.75, radius * 0.08, 6, 28),
+    new THREE.TorusGeometry(radius * 0.75, radius * 0.1, 6, 28),
     std(ocean ? 0x2a5a6e : 0x3a2a22, {
       emissive: ocean ? 0x1a5060 : 0xff5522,
       em: ocean ? 0.1 : 0.35,
@@ -1021,11 +1034,11 @@ export function makeCraterBowl(radius = 1.6, ocean = false): THREE.Group {
     }),
   )
   rim.rotation.x = Math.PI / 2
-  rim.position.y = 0.06
+  rim.position.y = 0.07
   g.add(rim)
 
   const crack = new THREE.Mesh(
-    new THREE.RingGeometry(radius * 0.9, radius * 1.15, 36),
+    new THREE.RingGeometry(radius * 0.9, radius * 1.2, 36),
     new THREE.MeshBasicMaterial({
       color: ocean ? 0x3a7088 : 0x2a1a14,
       transparent: true,
@@ -1038,10 +1051,17 @@ export function makeCraterBowl(radius = 1.6, ocean = false): THREE.Group {
   crack.position.y = 0.028
   g.add(crack)
 
-  const n = ocean ? 6 : 14
+  const n = ocean ? 6 : 16
   for (let i = 0; i < n; i++) {
     const a = (i / n) * Math.PI * 2 + Math.random() * 0.4
-    const r = radius * (0.7 + Math.random() * 0.45)
+    const r = radius * (0.65 + Math.random() * 0.5)
+    const rock = rubble[i]
+    if (rock) {
+      rock.position.set(Math.cos(a) * r, 0.06 + Math.random() * 0.1, Math.sin(a) * r)
+      rock.rotation.set(Math.random(), Math.random(), Math.random())
+      g.add(rock)
+      continue
+    }
     const chunk = mesh(
       Math.random() > 0.4
         ? new THREE.TetrahedronGeometry(0.1 + Math.random() * 0.12, 0)
@@ -1054,9 +1074,9 @@ export function makeCraterBowl(radius = 1.6, ocean = false): THREE.Group {
   }
 
   if (!ocean) {
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 7; i++) {
       const flame = mesh(
-        new THREE.ConeGeometry(0.1 + Math.random() * 0.08, 0.35 + Math.random() * 0.25, 4),
+        new THREE.ConeGeometry(0.1 + Math.random() * 0.08, 0.35 + Math.random() * 0.3, 4),
         std(i % 2 ? 0xff6622 : 0xffaa44, {
           emissive: 0xff3300,
           em: 1.6,
@@ -1065,8 +1085,8 @@ export function makeCraterBowl(radius = 1.6, ocean = false): THREE.Group {
         }),
         false,
       )
-      const a = (i / 5) * Math.PI * 2
-      flame.position.set(Math.cos(a) * 0.2, 0.15, Math.sin(a) * 0.2)
+      const a = (i / 7) * Math.PI * 2
+      flame.position.set(Math.cos(a) * 0.22, 0.12, Math.sin(a) * 0.22)
       flame.name = 'craterFlame'
       flame.userData.phase = Math.random() * Math.PI * 2
       g.add(flame)

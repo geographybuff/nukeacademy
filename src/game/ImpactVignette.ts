@@ -2,6 +2,14 @@ import * as THREE from 'three'
 import { EARTH_RADIUS, enuFrame, latLonToVector3 } from './geo'
 import type { ImpactTerrain } from './cities'
 import {
+  assetBuilding,
+  assetDebris,
+  assetHouse,
+  assetPeak,
+  assetRock,
+  assetTree,
+} from './dioramaAssets'
+import {
   makeBoat,
   makeBoulder,
   makeBuilding,
@@ -21,8 +29,29 @@ const EYE_HEIGHT = 3.15
 /** Matches nuke surface detonation height (land shell). */
 const BLAST_RADIUS = EARTH_RADIUS + 0.28
 const MAX_BUILDING_H = 2.65
-const CHUNK_POOL = 140
+const CHUNK_POOL = 180
 const DUST_WALL_COUNT = 5
+
+/** Beat 1 — pristine diorama reads (city / village / ridge). */
+const HOLD_UNTIL = 0.5
+/** Beat 2 — shock crawls, props tip in slow motion. */
+const SLOWMO_UNTIL = 1.0
+/** Destruction-clock value at end of slow-mo (mid tip, pre-shatter). */
+const SLOWMO_TE = 0.2
+/** How hard destruction-time runs after slow-mo (higher = more brutal). */
+const RAMP_RATE = 2.25
+
+/**
+ * Remap wall-clock age → destruction progress.
+ * Hold freezes the scene, slow-mo stretches the tip, then time accelerates.
+ */
+function destructionTime(t: number): number {
+  if (t <= HOLD_UNTIL) return 0
+  if (t <= SLOWMO_UNTIL) {
+    return ((t - HOLD_UNTIL) / (SLOWMO_UNTIL - HOLD_UNTIL)) * SLOWMO_TE
+  }
+  return SLOWMO_TE + (t - SLOWMO_UNTIL) * RAMP_RATE
+}
 
 type DestructKind =
   | 'building'
@@ -49,6 +78,9 @@ type Destructable = {
   mass: number
   shattered: boolean
   baseYaw: number
+  baseSx: number
+  baseSy: number
+  baseSz: number
 }
 
 type Chunk = {
@@ -206,93 +238,109 @@ export class ImpactVignette {
     if (!this.active) return
     this.age += dt
     const t = this.age
+    const te = destructionTime(t)
+    const brutal = t > SLOWMO_UNTIL
 
     const glow = this.root.getObjectByName('blastGlow') as THREE.PointLight | undefined
     if (glow) {
-      const pulse = Math.max(0, t - 0.06)
-      glow.intensity = Math.min(28, pulse * 40) * Math.exp(-Math.max(0, pulse - 0.45) * 0.55)
-      glow.position.y = this.groundY() + 1.0 + Math.min(2.5, t * 1.4)
+      // Ominous build during hold, then hard pulse with the shock
+      if (t < HOLD_UNTIL) {
+        glow.intensity = 1.2 + (t / HOLD_UNTIL) * 4.5
+      } else {
+        const pulse = Math.max(0, t - HOLD_UNTIL)
+        glow.intensity = Math.min(42, 8 + pulse * 55) * Math.exp(-Math.max(0, pulse - 0.35) * 0.5)
+      }
+      glow.position.y = this.groundY() + 1.0 + Math.min(2.8, te * 1.6)
     }
 
     if (this.flashMesh) {
       const mat = this.flashMesh.material as THREE.MeshBasicMaterial
-      mat.opacity = t < 0.035 ? 0.9 : Math.max(0, 0.4 - (t - 0.035) * 3.2)
-      this.flashMesh.scale.setScalar(1 + t * 4)
-      if (mat.opacity <= 0.02) this.flashMesh.visible = false
+      // Soft spark on impact, hard wash when slow-mo shock hits
+      const spark = t < 0.04 ? 0.22 * (1 - t / 0.04) : 0
+      const punch = Math.max(0, t - HOLD_UNTIL)
+      const hard = punch < 0.045 ? 0.95 : Math.max(0, 0.55 - (punch - 0.045) * 2.8)
+      mat.opacity = Math.max(spark, hard)
+      this.flashMesh.scale.setScalar(1 + Math.max(t, punch) * 5)
+      this.flashMesh.visible = mat.opacity > 0.02
     }
 
     if (this.shockRing) {
-      const shock = Math.max(0, t - 0.07)
+      const shock = Math.max(0, t - HOLD_UNTIL - 0.02)
       const mat = this.shockRing.material as THREE.MeshBasicMaterial
-      const r = 0.55 + shock * 8.5
+      // Crawl in slow-mo, then rip outward
+      const rate = t < SLOWMO_UNTIL ? 3.2 : 11
+      const r = 0.45 + shock * rate
       this.shockRing.scale.set(r, r, r)
-      mat.opacity = shock < 0.02 ? 0 : Math.max(0, 0.5 * Math.exp(-shock * 1.9))
+      mat.opacity = shock < 0.01 ? 0 : Math.max(0, 0.62 * Math.exp(-shock * (brutal ? 1.4 : 0.9)))
       this.shockRing.visible = mat.opacity > 0.02
     }
     if (this.shockRing2) {
-      const shock = Math.max(0, t - 0.16)
+      const shock = Math.max(0, t - HOLD_UNTIL - 0.12)
       const mat = this.shockRing2.material as THREE.MeshBasicMaterial
-      const r = 0.45 + shock * 10.5
+      const rate = t < SLOWMO_UNTIL ? 3.8 : 13
+      const r = 0.35 + shock * rate
       this.shockRing2.scale.set(r, r, r)
-      mat.opacity = shock < 0.02 ? 0 : Math.max(0, 0.32 * Math.exp(-shock * 1.7))
+      mat.opacity = shock < 0.01 ? 0 : Math.max(0, 0.4 * Math.exp(-shock * (brutal ? 1.25 : 0.8)))
       this.shockRing2.visible = mat.opacity > 0.02
     }
 
     if (this.scorchMesh) {
-      const s = easeOut(Math.min(1, t / 0.45))
-      this.scorchMesh.scale.setScalar(0.35 + s * 2.1)
-      ;(this.scorchMesh.material as THREE.MeshBasicMaterial).opacity = 0.4 * s
+      const s = easeOut(clamp01(te / 0.55))
+      this.scorchMesh.scale.setScalar(0.35 + s * 2.4)
+      ;(this.scorchMesh.material as THREE.MeshBasicMaterial).opacity = 0.48 * s
     }
 
-    // Atmosphere darkens / warms after the flash
+    // Atmosphere darkens / warms after the shock lands
     if (this.skyMesh) {
       const mat = this.skyMesh.material as THREE.MeshBasicMaterial
-      const warm = Math.min(1, t * 0.55)
-      mat.color.setRGB(0.07 + warm * 0.12, 0.14 - warm * 0.04, 0.18 - warm * 0.06)
+      const warm = clamp01((t - HOLD_UNTIL * 0.4) * 0.7)
+      mat.color.setRGB(0.07 + warm * 0.16, 0.14 - warm * 0.06, 0.18 - warm * 0.08)
     }
 
-    const heave = Math.max(0, t - 0.08)
-    const amp = Math.min(0.05, heave * 0.1) * Math.exp(-Math.max(0, heave - 0.3) * 2.6)
-    const heaveY = Math.sin(heave * 12) * amp
+    const heave = Math.max(0, t - HOLD_UNTIL)
+    const amp =
+      Math.min(brutal ? 0.09 : 0.035, heave * (brutal ? 0.18 : 0.06)) *
+      Math.exp(-Math.max(0, heave - (brutal ? 0.2 : 0.45)) * (brutal ? 1.8 : 2.2))
+    const heaveY = Math.sin(heave * (brutal ? 18 : 9)) * amp
     if (this.groundMesh) {
       this.groundMesh.position.y = this.groundY() + heaveY
     }
     if (this.waterMesh) {
-      const w = Math.max(0, t - 0.06)
+      const w = Math.max(0, t - HOLD_UNTIL)
       this.waterMesh.position.y =
-        this.groundY() + 0.03 + heaveY + Math.sin(w * 9) * Math.min(0.12, w * 0.22) * Math.exp(-w * 0.35)
-      this.waterMesh.rotation.z = Math.sin(w * 5.5) * 0.03
+        this.groundY() + 0.03 + heaveY + Math.sin(w * 9) * Math.min(0.14, w * 0.22) * Math.exp(-w * 0.35)
+      this.waterMesh.rotation.z = Math.sin(w * 5.5) * 0.04
     }
     this.floorFx.position.y = heaveY
 
-    this.updateDustWalls(t)
-    this.updateSmoke(t, dt)
-    this.updateCraterFlames(t, dt)
-    this.updateDestructables(t, dt)
-    this.updateDust(t, dt)
-    this.updateDebris(t, dt)
-    this.updateEmbers(t, dt)
-    this.updateGlass(t, dt)
-    this.updateChunks(dt)
-    this.updateCameraMotion(t)
+    this.updateDustWalls(te, t)
+    this.updateSmoke(te, dt)
+    this.updateCraterFlames(te, dt, brutal)
+    this.updateDestructables(te, dt, brutal)
+    this.updateDust(te, dt)
+    this.updateDebris(te, dt)
+    this.updateEmbers(te, dt)
+    this.updateGlass(te, dt)
+    this.updateChunks(dt, brutal)
+    this.updateCameraMotion(t, te)
   }
 
-  private updateCraterFlames(t: number, dt: number) {
+  private updateCraterFlames(te: number, dt: number, brutal: boolean) {
     if (!this.crater) return
     // Punch the crater open with the shock
-    const open = easeOut(clamp01((t - 0.06) / 0.28))
-    this.crater.scale.setScalar(0.2 + open * 0.8)
+    const open = easeOut(clamp01(te / 0.35))
+    this.crater.scale.setScalar(0.15 + open * 0.95)
     this.crater.traverse((o) => {
       if (o.name !== 'craterFlame') return
       const flame = o as THREE.Mesh
-      const phase = ((flame.userData.phase as number) ?? 0) + dt * 11
+      const phase = ((flame.userData.phase as number) ?? 0) + dt * (brutal ? 16 : 8)
       flame.userData.phase = phase
-      flame.scale.y = 0.85 + Math.sin(phase) * 0.3
-      flame.scale.x = 0.9 + Math.sin(phase * 1.4) * 0.18
+      flame.scale.y = 0.85 + Math.sin(phase) * (brutal ? 0.45 : 0.25)
+      flame.scale.x = 0.9 + Math.sin(phase * 1.4) * 0.2
       const mat = flame.material as THREE.MeshStandardMaterial
-      const on = Math.min(1, Math.max(0, t - 0.12) * 4)
-      mat.opacity = 0.9 * on
-      mat.emissiveIntensity = (1.2 + Math.sin(phase) * 0.4) * on
+      const on = Math.min(1, Math.max(0, te - 0.05) * 5)
+      mat.opacity = 0.95 * on
+      mat.emissiveIntensity = (1.4 + Math.sin(phase) * 0.55) * on * (brutal ? 1.35 : 1)
       flame.visible = on > 0.05
     })
   }
@@ -309,12 +357,15 @@ export class ImpactVignette {
 
   shakeAmount(): number {
     if (!this.active) return 0
-    const hit = Math.max(0, this.age - 0.08)
-    // Two punches: shock arrival + building collapse cascade
-    const a = Math.min(1, hit * 2.2) * Math.exp(-Math.max(0, hit - 0.18) * 1.4)
-    const b = Math.max(0, hit - 0.45)
-    const cascade = Math.min(0.55, b * 1.1) * Math.exp(-Math.max(0, b - 0.25) * 1.6)
-    return Math.min(1, a * 0.85 + cascade)
+    const t = this.age
+    // Hold: almost still. Slow-mo: low rumble. Brutal: two hard punches.
+    if (t < HOLD_UNTIL) return 0.04 * (t / HOLD_UNTIL)
+    const hit = t - HOLD_UNTIL
+    const slow = t < SLOWMO_UNTIL
+    const a = Math.min(1, hit * (slow ? 1.1 : 2.8)) * Math.exp(-Math.max(0, hit - (slow ? 0.35 : 0.12)) * (slow ? 0.7 : 1.1))
+    const b = Math.max(0, t - SLOWMO_UNTIL)
+    const cascade = Math.min(0.85, b * 1.6) * Math.exp(-Math.max(0, b - 0.35) * 1.15)
+    return Math.min(1.15, a * (slow ? 0.35 : 0.95) + cascade)
   }
 
   dismiss() {
@@ -327,21 +378,33 @@ export class ImpactVignette {
     return this.active
   }
 
-  private updateCameraMotion(t: number) {
-    // Dolly back + slight settle as the shock arrives; rise with the stem
-    const dolly = easeOut(clamp01((t - 0.05) / 0.7)) * 0.85
-    const rise = easeOut(clamp01((t - 0.25) / 1.4)) * 1.35
-    const sway = Math.sin(t * 2.4) * 0.08 * Math.min(1, t)
-    this.camEyeLocal.set(sway * 0.35, dolly * 0.15, -dolly)
+  private updateCameraMotion(t: number, te: number) {
+    // Hold: settle on the landscape. Slow-mo: creep in. Brutal: yank back + rise.
+    const establish = easeOut(clamp01(t / HOLD_UNTIL))
+    const afterShock = Math.max(0, t - HOLD_UNTIL)
+    const brutalT = Math.max(0, t - SLOWMO_UNTIL)
+    const dolly =
+      establish * 0.25 +
+      easeOut(clamp01(afterShock / 0.9)) * 0.55 +
+      easeOut(clamp01(brutalT / 0.55)) * 1.15
+    const rise =
+      establish * 0.12 +
+      easeOut(clamp01(te / 1.1)) * 0.7 +
+      easeOut(clamp01(brutalT / 0.8)) * 1.1
+    const sway =
+      Math.sin(t * (t < SLOWMO_UNTIL ? 1.2 : 3.4)) *
+      (t < HOLD_UNTIL ? 0.04 : t < SLOWMO_UNTIL ? 0.07 : 0.14) *
+      Math.min(1, afterShock + 0.2)
+    this.camEyeLocal.set(sway * 0.4, dolly * 0.12, -dolly)
     this.camLookLocal.set(
-      this.stageBlastX * 0.15 + sway * 0.2,
-      this.groundY() + 0.6 + rise,
-      this.stageBlastZ * 0.92,
+      this.stageBlastX * 0.12 + sway * 0.25,
+      this.groundY() + 0.55 + rise,
+      this.stageBlastZ * 0.9,
     )
-    // FOV punch on shock, then widen for the bloom
-    const punch = Math.max(0, 1 - Math.abs(t - 0.14) * 8) * 8
-    const wide = easeOut(clamp01((t - 0.4) / 1.2)) * 6
-    this.fovBias = punch + wide
+    const punch = Math.max(0, 1 - Math.abs(t - HOLD_UNTIL - 0.04) * 7) * 10
+    const brutalPunch = Math.max(0, 1 - Math.abs(t - SLOWMO_UNTIL - 0.05) * 5) * 7
+    const wide = easeOut(clamp01(brutalT / 0.9)) * 8
+    this.fovBias = punch + brutalPunch + wide
   }
 
   private setupLights() {
@@ -398,7 +461,15 @@ export class ImpactVignette {
   }
 
   private buildCrater(kind: ImpactTerrain['kind']) {
-    this.crater = makeCraterBowl(kind === 'ocean' ? 1.4 : 1.7, kind === 'ocean')
+    const rubble: THREE.Object3D[] = []
+    const count = kind === 'ocean' ? 6 : 16
+    for (let i = 0; i < count; i++) {
+      const rock =
+        assetDebris(0.1 + (i % 5) * 0.03, this.rng + i * 0.07) ??
+        assetRock(0.1 + (i % 4) * 0.04, this.rng + i * 0.11, kind === 'mountain')
+      if (rock) rubble.push(rock)
+    }
+    this.crater = makeCraterBowl(kind === 'ocean' ? 1.4 : 1.7, kind === 'ocean', rubble)
     this.crater.position.set(this.stageBlastX, this.groundY(), this.stageBlastZ)
     this.crater.scale.setScalar(0.15)
     this.root.add(this.crater)
@@ -425,6 +496,9 @@ export class ImpactVignette {
       mass: opts.mass ?? 1,
       shattered: false,
       baseYaw: obj.rotation.y,
+      baseSx: obj.scale.x,
+      baseSy: obj.scale.y,
+      baseSz: obj.scale.z,
     })
   }
 
@@ -513,22 +587,23 @@ export class ImpactVignette {
     }
   }
 
-  private updateDustWalls(t: number) {
+  private updateDustWalls(te: number, t: number) {
+    const brutal = t > SLOWMO_UNTIL
     for (let i = 0; i < this.dustWalls.length; i++) {
       const wall = this.dustWalls[i]!
-      const start = 0.1 + i * 0.07
-      const local = Math.max(0, t - start)
+      const start = 0.04 + i * 0.05
+      const local = Math.max(0, te - start)
       if (local <= 0) {
         wall.visible = false
         continue
       }
       wall.visible = true
-      const expand = 0.6 + local * (4.5 - i * 0.35)
-      wall.scale.set(expand, expand, 0.6 + local * 0.8)
-      wall.position.y = this.groundY() + 0.35 + i * 0.18 + local * 0.35
+      const expand = 0.55 + local * ((brutal ? 6.2 : 3.2) - i * 0.3)
+      wall.scale.set(expand, expand, 0.55 + local * (brutal ? 1.1 : 0.65))
+      wall.position.y = this.groundY() + 0.35 + i * 0.18 + local * 0.4
       const mat = wall.material as THREE.MeshStandardMaterial
-      mat.opacity = Math.max(0, 0.45 * Math.exp(-local * 1.35) * (1 - i * 0.08))
-      mat.emissiveIntensity = Math.max(0.02, 0.35 * Math.exp(-local * 1.8))
+      mat.opacity = Math.max(0, 0.55 * Math.exp(-local * (brutal ? 1.1 : 0.85)) * (1 - i * 0.07))
+      mat.emissiveIntensity = Math.max(0.02, 0.5 * Math.exp(-local * 1.5))
       if (mat.opacity < 0.02) wall.visible = false
     }
   }
@@ -559,21 +634,25 @@ export class ImpactVignette {
       )
       mesh.scale.set(0.2, 0.1, 0.2)
       this.root.add(mesh)
-      this.smoke.push({ mesh, delay: 0.2 + i * 0.06 + Math.random() * 0.1, grow: 0.8 + Math.random() * 0.6 })
+      this.smoke.push({
+        mesh,
+        delay: 0.12 + i * 0.05 + Math.random() * 0.08,
+        grow: 0.55 + Math.random() * 0.45,
+      })
     }
   }
 
-  private updateSmoke(t: number, dt: number) {
+  private updateSmoke(te: number, dt: number) {
     for (const s of this.smoke) {
-      const local = Math.max(0, t - s.delay)
+      const local = Math.max(0, te - s.delay)
       if (local <= 0) continue
       const grow = easeOut(Math.min(1, local / s.grow))
-      s.mesh.scale.set(0.4 + grow * 1.4, 0.3 + grow * 2.4, 0.4 + grow * 1.4)
-      s.mesh.position.y = this.groundY() + 0.2 + grow * 1.6
-      s.mesh.rotation.y += dt * 0.35
+      s.mesh.scale.set(0.45 + grow * 1.7, 0.35 + grow * 2.9, 0.45 + grow * 1.7)
+      s.mesh.position.y = this.groundY() + 0.2 + grow * 2.0
+      s.mesh.rotation.y += dt * 0.45
       const mat = s.mesh.material as THREE.MeshStandardMaterial
-      mat.opacity = Math.min(0.55, grow * 0.7) * Math.exp(-Math.max(0, local - 1.1) * 0.6)
-      mat.emissiveIntensity = Math.max(0.02, 0.35 * (1 - local * 0.35))
+      mat.opacity = Math.min(0.65, grow * 0.85) * Math.exp(-Math.max(0, local - 0.9) * 0.55)
+      mat.emissiveIntensity = Math.max(0.02, 0.5 * (1 - local * 0.3))
     }
   }
 
@@ -739,35 +818,36 @@ export class ImpactVignette {
       const c = this.chunks[this.nextChunk % this.chunks.length]!
       this.nextChunk++
       const a = Math.random() * Math.PI * 2
-      const elev = 0.3 + Math.random() * 0.9
+      const elev = 0.35 + Math.random() * 1.05
       c.active = true
-      c.life = 1.1 + Math.random() * 1.3
+      c.life = 1.25 + Math.random() * 1.4
       c.mesh.visible = true
-      c.mesh.position.set(x + (Math.random() - 0.5) * 0.25, y + Math.random() * 0.4, z + (Math.random() - 0.5) * 0.25)
-      c.mesh.scale.setScalar(0.7 + Math.random() * 0.8)
-      c.vx = Math.cos(a) * Math.cos(elev) * force * (0.7 + Math.random())
-      c.vy = Math.sin(elev) * force * (0.8 + Math.random() * 0.8)
-      c.vz = Math.sin(a) * Math.cos(elev) * force * (0.55 + Math.random()) - force * 0.15
-      c.spinX = (Math.random() - 0.5) * 14
-      c.spinY = (Math.random() - 0.5) * 14
-      c.spinZ = (Math.random() - 0.5) * 14
+      c.mesh.position.set(x + (Math.random() - 0.5) * 0.3, y + Math.random() * 0.5, z + (Math.random() - 0.5) * 0.3)
+      c.mesh.scale.setScalar(0.75 + Math.random() * 0.95)
+      c.vx = Math.cos(a) * Math.cos(elev) * force * (0.85 + Math.random() * 1.15)
+      c.vy = Math.sin(elev) * force * (1.0 + Math.random())
+      c.vz = Math.sin(a) * Math.cos(elev) * force * (0.7 + Math.random()) - force * 0.2
+      c.spinX = (Math.random() - 0.5) * 22
+      c.spinY = (Math.random() - 0.5) * 22
+      c.spinZ = (Math.random() - 0.5) * 22
       const mat = c.mesh.material as THREE.MeshStandardMaterial
-      mat.emissiveIntensity = 0.55
+      mat.emissiveIntensity = 0.85
     }
   }
 
-  private updateDust(t: number, dt: number) {
+  private updateDust(te: number, dt: number) {
     if (!this.dust || !this.dustVel) return
-    const rush = Math.max(0, t - 0.12)
+    const rush = Math.max(0, te - 0.02)
     if (rush <= 0) return
     const positions = this.dust.geometry.getAttribute('position') as THREE.BufferAttribute
     const arr = positions.array as Float32Array
     const vel = this.dustVel
+    const speed = 1 + Math.min(1.4, rush * 0.8)
     for (let i = 0; i < arr.length; i += 3) {
       vel[i + 1]! -= 1.2 * dt
-      arr[i]! += vel[i]! * dt
-      arr[i + 1]! += vel[i + 1]! * dt
-      arr[i + 2]! += vel[i + 2]! * dt
+      arr[i]! += vel[i]! * dt * speed
+      arr[i + 1]! += vel[i + 1]! * dt * speed
+      arr[i + 2]! += vel[i + 2]! * dt * speed
       if (arr[i + 1]! < this.groundY() + 0.08) {
         arr[i + 1] = this.groundY() + 0.08
         vel[i]! *= 0.7
@@ -777,58 +857,61 @@ export class ImpactVignette {
     }
     positions.needsUpdate = true
     const pm = this.dust.material as THREE.PointsMaterial
-    pm.opacity = Math.min(0.8, rush * 1.1) * Math.exp(-Math.max(0, rush - 0.9) * 0.55)
-    pm.size = 0.28 + Math.min(0.2, rush * 0.15)
+    pm.opacity = Math.min(0.9, rush * 1.4) * Math.exp(-Math.max(0, rush - 0.8) * 0.5)
+    pm.size = 0.28 + Math.min(0.28, rush * 0.2)
   }
 
-  private updateEmbers(t: number, dt: number) {
+  private updateEmbers(te: number, dt: number) {
     if (!this.embers || !this.emberVel) return
-    const rush = Math.max(0, t - 0.1)
+    const rush = Math.max(0, te - 0.02)
     if (rush <= 0) return
     const positions = this.embers.geometry.getAttribute('position') as THREE.BufferAttribute
     const arr = positions.array as Float32Array
     const vel = this.emberVel
+    const speed = 1 + Math.min(1.6, rush)
     for (let i = 0; i < arr.length; i += 3) {
       vel[i + 1]! -= 4.5 * dt
-      arr[i]! += vel[i]! * dt
-      arr[i + 1]! += vel[i + 1]! * dt
-      arr[i + 2]! += vel[i + 2]! * dt
+      arr[i]! += vel[i]! * dt * speed
+      arr[i + 1]! += vel[i + 1]! * dt * speed
+      arr[i + 2]! += vel[i + 2]! * dt * speed
     }
     positions.needsUpdate = true
     const pm = this.embers.material as THREE.PointsMaterial
-    pm.opacity = Math.min(0.95, rush * 2.8) * Math.exp(-Math.max(0, rush - 0.65) * 1.0)
+    pm.opacity = Math.min(1, rush * 3.2) * Math.exp(-Math.max(0, rush - 0.55) * 0.9)
   }
 
-  private updateGlass(t: number, dt: number) {
+  private updateGlass(te: number, dt: number) {
     if (!this.glass || !this.glassVel || this.terrainKind !== 'city') return
-    const rush = Math.max(0, t - 0.18)
+    const rush = Math.max(0, te - 0.08)
     if (rush <= 0) return
     const positions = this.glass.geometry.getAttribute('position') as THREE.BufferAttribute
     const arr = positions.array as Float32Array
     const vel = this.glassVel
+    const speed = 1.15 + Math.min(1.5, rush)
     for (let i = 0; i < arr.length; i += 3) {
       vel[i + 1]! -= 9 * dt
-      arr[i]! += vel[i]! * dt
-      arr[i + 1]! += vel[i + 1]! * dt
-      arr[i + 2]! += vel[i + 2]! * dt
+      arr[i]! += vel[i]! * dt * speed
+      arr[i + 1]! += vel[i + 1]! * dt * speed
+      arr[i + 2]! += vel[i + 2]! * dt * speed
     }
     positions.needsUpdate = true
     const pm = this.glass.material as THREE.PointsMaterial
-    pm.opacity = Math.min(0.9, rush * 2) * Math.exp(-Math.max(0, rush - 0.5) * 1.4)
+    pm.opacity = Math.min(0.95, rush * 2.4) * Math.exp(-Math.max(0, rush - 0.4) * 1.2)
   }
 
-  private updateDebris(t: number, dt: number) {
+  private updateDebris(te: number, dt: number) {
     if (!this.debris || !this.debrisVel) return
-    const rush = Math.max(0, t - 0.12)
+    const rush = Math.max(0, te - 0.02)
     if (rush <= 0) return
     const positions = this.debris.geometry.getAttribute('position') as THREE.BufferAttribute
     const arr = positions.array as Float32Array
     const vel = this.debrisVel
+    const speed = 1.1 + Math.min(1.7, rush * 0.9)
     for (let i = 0; i < arr.length; i += 3) {
       vel[i + 1]! -= 11 * dt
-      arr[i]! += vel[i]! * dt
-      arr[i + 1]! += vel[i + 1]! * dt
-      arr[i + 2]! += vel[i + 2]! * dt
+      arr[i]! += vel[i]! * dt * speed
+      arr[i + 1]! += vel[i + 1]! * dt * speed
+      arr[i + 2]! += vel[i + 2]! * dt * speed
       if (arr[i + 1]! < this.groundY() + 0.05) {
         arr[i + 1] = this.groundY() + 0.05
         vel[i]! *= 0.48
@@ -838,30 +921,32 @@ export class ImpactVignette {
     }
     positions.needsUpdate = true
     const pm = this.debris.material as THREE.PointsMaterial
-    pm.opacity = Math.min(0.9, rush * 2.5) * Math.exp(-Math.max(0, rush - 1.05) * 0.7)
+    pm.opacity = Math.min(0.95, rush * 2.8) * Math.exp(-Math.max(0, rush - 0.9) * 0.65)
   }
 
-  private updateChunks(dt: number) {
+  private updateChunks(dt: number, brutal: boolean) {
+    const g = brutal ? 16 : 12
+    const spinMul = brutal ? 1.35 : 1
     for (const c of this.chunks) {
       if (!c.active) continue
       c.life -= dt
-      c.vy -= 12 * dt
+      c.vy -= g * dt
       c.mesh.position.x += c.vx * dt
       c.mesh.position.y += c.vy * dt
       c.mesh.position.z += c.vz * dt
-      c.mesh.rotation.x += c.spinX * dt
-      c.mesh.rotation.y += c.spinY * dt
-      c.mesh.rotation.z += c.spinZ * dt
+      c.mesh.rotation.x += c.spinX * dt * spinMul
+      c.mesh.rotation.y += c.spinY * dt * spinMul
+      c.mesh.rotation.z += c.spinZ * dt * spinMul
       if (c.mesh.position.y < this.groundY() + 0.04) {
         c.mesh.position.y = this.groundY() + 0.04
-        c.vy = Math.abs(c.vy) * 0.2
+        c.vy = Math.abs(c.vy) * 0.22
         c.vx *= 0.5
         c.vz *= 0.5
         c.spinX *= 0.45
         c.spinY *= 0.45
       }
       const mat = c.mesh.material as THREE.MeshStandardMaterial
-      mat.emissiveIntensity = Math.max(0.02, 0.45 * (c.life / 1.4))
+      mat.emissiveIntensity = Math.max(0.02, (brutal ? 0.7 : 0.45) * (c.life / 1.4))
       if (c.life < 0.3) {
         c.mesh.scale.multiplyScalar(1 - dt * 2.8)
       }
@@ -872,25 +957,27 @@ export class ImpactVignette {
     }
   }
 
-  private updateDestructables(t: number, dt: number) {
+  private updateDestructables(te: number, dt: number, brutal: boolean) {
+    const forceMul = brutal ? 1.85 : 1
+    const leanMul = brutal ? 1.4 : 1
     for (const d of this.destructables) {
-      // Shock speed ~25 units/s — nearer props go first
-      const arrival = 0.09 + d.dist * 0.038 + d.seed * 0.05
-      const local = Math.max(0, t - arrival)
+      // Shock front — nearer props go first (on destruction-clock)
+      const arrival = 0.02 + d.dist * 0.034 + d.seed * 0.04
+      const local = Math.max(0, te - arrival)
       if (local <= 0) {
         d.obj.position.set(d.ox, d.oy, d.oz)
         d.obj.rotation.set(0, d.baseYaw, 0)
-        d.obj.scale.set(1, 1, 1)
+        d.obj.scale.set(d.baseSx, d.baseSy, d.baseSz)
         d.obj.visible = true
         continue
       }
 
-      const force = (1.35 / Math.sqrt(d.dist * d.mass)) * (0.7 + d.seed * 0.5)
-      // Phases: shudder → tip → launch → shatter
-      const shudderT = Math.min(1, local / 0.08)
-      const tip = easeOut(clamp01(local / (0.28 + d.mass * 0.16)))
-      const fly = easeOut(clamp01((local - 0.08) / (0.42 + d.mass * 0.12)))
-      const shatter = easeOut(clamp01((local - 0.22) / 0.35))
+      const force = (1.55 / Math.sqrt(d.dist * d.mass)) * (0.75 + d.seed * 0.55) * forceMul
+      // Phases: shudder → tip → launch → shatter (shatter mostly after slow-mo)
+      const shudderT = Math.min(1, local / (brutal ? 0.05 : 0.1))
+      const tip = easeOut(clamp01(local / (0.32 + d.mass * 0.14)))
+      const fly = easeOut(clamp01((local - 0.1) / (0.36 + d.mass * 0.1)))
+      const shatter = easeOut(clamp01((local - 0.24) / (brutal ? 0.22 : 0.32)))
 
       if (d.kind === 'wave') {
         const swell = Math.sin(local * 16 + d.seed * 6) * Math.min(0.7, local * 1.6)
@@ -902,93 +989,108 @@ export class ImpactVignette {
       }
 
       if (d.kind === 'buoy' || d.kind === 'boat') {
-        d.obj.position.x = d.ox + d.nx * fly * (2.8 + force)
-        d.obj.position.z = d.oz + d.nz * fly * (1.9 + force * 0.8)
-        d.obj.position.y = d.oy + Math.sin(local * 18) * 0.2 * shudderT + fly * (1.8 + force * 0.4)
-        d.obj.rotation.x = tip * 2.2 * (d.seed - 0.5) + fly * 1.2
-        d.obj.rotation.z = tip * 2.6 * (0.5 - d.seed)
-        d.obj.rotation.y = d.baseYaw + fly * 3 * (d.seed - 0.5)
-        if (shatter > 0.85) d.obj.visible = false
+        d.obj.position.x = d.ox + d.nx * fly * (3.2 + force)
+        d.obj.position.z = d.oz + d.nz * fly * (2.2 + force * 0.9)
+        d.obj.position.y = d.oy + Math.sin(local * 18) * 0.2 * shudderT + fly * (2.2 + force * 0.5)
+        d.obj.rotation.x = tip * 2.6 * (d.seed - 0.5) + fly * 1.5
+        d.obj.rotation.z = tip * 3.0 * (0.5 - d.seed)
+        d.obj.rotation.y = d.baseYaw + fly * 3.5 * (d.seed - 0.5)
+        if (shatter > 0.8) d.obj.visible = false
         continue
       }
 
       if (d.kind === 'car') {
-        const flip = tip * (1.2 + d.seed) + fly * 2.5
-        d.obj.rotation.x = -flip * 0.7
-        d.obj.rotation.z = (d.seed - 0.5) * tip * 1.8
-        d.obj.rotation.y = d.baseYaw + fly * 4
-        d.obj.position.x = d.ox + d.nx * fly * (3.5 + force)
-        d.obj.position.z = d.oz + d.nz * fly * 2.2
-        d.obj.position.y = d.oy + fly * (2.2 + force) * (0.8 + d.seed)
-        if (shatter > 0.7 && !d.shattered) {
+        const flip = tip * (1.4 + d.seed) + fly * 3.2
+        d.obj.rotation.x = -flip * 0.85
+        d.obj.rotation.z = (d.seed - 0.5) * tip * 2.2
+        d.obj.rotation.y = d.baseYaw + fly * 5
+        d.obj.position.x = d.ox + d.nx * fly * (4.2 + force)
+        d.obj.position.z = d.oz + d.nz * fly * 2.6
+        d.obj.position.y = d.oy + fly * (2.8 + force) * (0.85 + d.seed)
+        if (shatter > 0.55 && !d.shattered) {
           d.shattered = true
-          this.burstChunks(d.obj.position.x, d.obj.position.y, d.obj.position.z, 4, 4 + force)
+          this.burstChunks(d.obj.position.x, d.obj.position.y, d.obj.position.z, 6, 5.5 + force)
           d.obj.visible = false
         }
         continue
       }
 
       if (d.kind === 'pole') {
-        d.obj.rotation.x = -tip * (1.4 + d.seed) - fly * 0.6
-        d.obj.rotation.z = (d.seed - 0.5) * tip * 0.8
-        d.obj.position.x = d.ox + d.nx * fly * 1.2
-        d.obj.position.z = d.oz + d.nz * fly * 0.9
-        d.obj.position.y = d.oy - tip * 0.15
+        d.obj.rotation.x = -tip * (1.7 + d.seed) - fly * 0.9
+        d.obj.rotation.z = (d.seed - 0.5) * tip * 1.1
+        d.obj.position.x = d.ox + d.nx * fly * 1.6
+        d.obj.position.z = d.oz + d.nz * fly * 1.1
+        d.obj.position.y = d.oy - tip * 0.2
         continue
       }
 
       // Buildings / houses / trees / peaks / props
-      const leanAmt = d.kind === 'tree' ? 1.55 : d.kind === 'house' ? 1.15 : 1
-      const leanX = -tip * (0.95 + d.seed * 0.85) * leanAmt
-      const leanZ = tip * (d.seed - 0.5) * (d.kind === 'tree' ? 1.5 : 0.95)
-      const vib = Math.sin(local * 48 + d.seed * 10) * 0.045 * shudderT * (1 - tip)
+      const leanAmt = (d.kind === 'tree' ? 1.75 : d.kind === 'house' ? 1.3 : 1.15) * leanMul
+      const leanX = -tip * (1.15 + d.seed * 0.95) * leanAmt
+      const leanZ = tip * (d.seed - 0.5) * (d.kind === 'tree' ? 1.7 : 1.15) * leanMul
+      const vib =
+        Math.sin(local * (brutal ? 70 : 36) + d.seed * 10) *
+        (brutal ? 0.07 : 0.04) *
+        shudderT *
+        (1 - tip * 0.7)
       d.obj.rotation.x = leanX + vib
-      d.obj.rotation.z = leanZ + Math.cos(local * 40) * 0.035 * shudderT * (1 - tip)
-      d.obj.rotation.y = d.baseYaw + fly * 0.4 * (d.seed - 0.5)
+      d.obj.rotation.z = leanZ + Math.cos(local * 40) * 0.04 * shudderT * (1 - tip)
+      d.obj.rotation.y = d.baseYaw + fly * 0.55 * (d.seed - 0.5)
 
       const slide =
-        fly * force * (d.kind === 'tree' ? 3.8 : d.kind === 'house' ? 2.5 : d.kind === 'prop' ? 3.2 : 1.9)
+        fly *
+        force *
+        (d.kind === 'tree' ? 4.6 : d.kind === 'house' ? 3.1 : d.kind === 'prop' ? 3.8 : 2.4)
       const lift =
-        fly * force * (d.kind === 'tree' ? 3.1 : d.kind === 'house' ? 1.7 : 1.5) * (0.65 + d.seed)
-      d.obj.position.x = d.ox + d.nx * slide + vib * 0.15
-      d.obj.position.z = d.oz + d.nz * slide * 0.88
-      d.obj.position.y = d.oy + lift - tip * 0.2 * d.mass
+        fly * force * (d.kind === 'tree' ? 3.6 : d.kind === 'house' ? 2.1 : 1.9) * (0.7 + d.seed)
+      d.obj.position.x = d.ox + d.nx * slide + vib * 0.2
+      d.obj.position.z = d.oz + d.nz * slide * 0.9
+      d.obj.position.y = d.oy + lift - tip * 0.28 * d.mass
 
       if (d.kind === 'building' || d.kind === 'house') {
-        const squash = 1 - tip * 0.45
-        const crush = 1 - shatter * (0.55 + d.seed * 0.3)
-        d.obj.scale.set(1 + tip * 0.28, Math.max(0.05, squash * crush), 1 + tip * 0.2)
-        if (shatter > 0.55 && !d.shattered) {
+        const squash = 1 - tip * (brutal ? 0.55 : 0.4)
+        const crush = 1 - shatter * (0.65 + d.seed * 0.3)
+        d.obj.scale.set(
+          d.baseSx * (1 + tip * 0.35),
+          d.baseSy * Math.max(0.04, squash * crush),
+          d.baseSz * (1 + tip * 0.25),
+        )
+        if (shatter > 0.4 && !d.shattered) {
           d.shattered = true
-          const n = d.kind === 'building' ? 6 + Math.floor(d.seed * 5) : 4
+          const n = d.kind === 'building' ? 9 + Math.floor(d.seed * 7) : 6
           this.burstChunks(
             d.obj.position.x,
-            d.obj.position.y + 0.3,
+            d.obj.position.y + 0.35,
             d.obj.position.z,
             n,
-            3.5 + force * 1.2,
+            4.8 + force * 1.5,
           )
         }
-        if (shatter > 0.82) d.obj.visible = false
+        if (shatter > 0.75) d.obj.visible = false
       } else if (d.kind === 'tree') {
-        d.obj.scale.setScalar(Math.max(0.04, 1 - fly * 0.95))
-        d.obj.rotation.y += dt * (6 + d.seed * 10) * fly
-        if (shatter > 0.6 && !d.shattered) {
+        const shrink = Math.max(0.04, 1 - fly * 1.05)
+        d.obj.scale.set(d.baseSx * shrink, d.baseSy * shrink, d.baseSz * shrink)
+        d.obj.rotation.y += dt * (8 + d.seed * 12) * fly
+        if (shatter > 0.45 && !d.shattered) {
           d.shattered = true
-          this.burstChunks(d.obj.position.x, d.obj.position.y, d.obj.position.z, 3, 3 + force)
+          this.burstChunks(d.obj.position.x, d.obj.position.y, d.obj.position.z, 5, 4.2 + force)
         }
       } else if (d.kind === 'peak') {
-        d.obj.rotation.x = -tip * 0.45
-        d.obj.position.y = d.oy - tip * 0.5
-        d.obj.scale.set(1 + tip * 0.15, Math.max(0.3, 1 - tip * 0.45), 1 + tip * 0.15)
-        if (shatter > 0.7 && !d.shattered) {
+        d.obj.rotation.x = -tip * 0.65
+        d.obj.position.y = d.oy - tip * 0.65
+        d.obj.scale.set(
+          d.baseSx * (1 + tip * 0.2),
+          d.baseSy * Math.max(0.22, 1 - tip * 0.55),
+          d.baseSz * (1 + tip * 0.2),
+        )
+        if (shatter > 0.55 && !d.shattered) {
           d.shattered = true
-          this.burstChunks(d.obj.position.x, d.obj.position.y + 0.5, d.obj.position.z, 5, 2.5 + force)
+          this.burstChunks(d.obj.position.x, d.obj.position.y + 0.5, d.obj.position.z, 8, 3.6 + force)
         }
       } else if (d.kind === 'prop') {
-        d.obj.rotation.x = tip * 2 + fly * 3
-        d.obj.rotation.z = (d.seed - 0.5) * fly * 4
-        if (shatter > 0.75) d.obj.visible = false
+        d.obj.rotation.x = tip * 2.4 + fly * 3.6
+        d.obj.rotation.z = (d.seed - 0.5) * fly * 5
+        if (shatter > 0.6) d.obj.visible = false
       }
 
       d.obj.traverse((o) => {
@@ -996,8 +1098,8 @@ export class ImpactVignette {
         const mat = m.material as THREE.MeshStandardMaterial | undefined
         if (!mat || mat.emissiveIntensity == null) return
         mat.emissiveIntensity = Math.min(
-          1.7,
-          (mat.userData.baseEm ?? 0.08) + tip * 1.05 + fly * 0.6,
+          brutal ? 2.2 : 1.7,
+          (mat.userData.baseEm ?? 0.08) + tip * 1.25 + fly * 0.85,
         )
       })
     }
@@ -1130,37 +1232,41 @@ export class ImpactVignette {
           MAX_BUILDING_H,
           0.55 + ((ring * 7 + i * 3) % 10) * 0.22 + Math.random() * 0.65 + (ring > 8 ? 0.7 : 0),
         )
-        // Vary footprint so shop / walkup / slab / deco styles can read
+        const seed = ring * 31 + i * 7 + h * 10
         const slim = Math.random() > 0.7
         const w = slim ? 0.32 + Math.random() * 0.28 : 0.42 + Math.random() * 0.55
         const depth = slim ? 0.55 + Math.random() * 0.35 : 0.38 + Math.random() * 0.45
-        const building = makeBuilding(
-          w,
-          h,
-          depth,
-          palette[(ring + i) % palette.length]!,
-          ring > 6 || Math.random() > 0.55,
-          ring * 31 + i * 7 + h * 10,
-        )
+        const building =
+          assetBuilding(h, this.rng + seed * 0.01) ??
+          makeBuilding(
+            w,
+            h,
+            depth,
+            palette[(ring + i) % palette.length]!,
+            ring > 6 || Math.random() > 0.55,
+            seed,
+          )
         building.position.set(x, gy + 0.02, z)
-        building.rotation.y = (Math.random() - 0.5) * 0.18
+        building.rotation.y += (Math.random() - 0.5) * 0.12
         this.markDestruct(building, 'building', { mass: 0.65 + ring * 0.09, seed: Math.random() })
         this.root.add(building)
       }
     }
 
-    // Landmark towers near the blast — tall deco / round / glass
+    // Landmark towers near the blast — Kenney skyscrapers when available
     for (let i = 0; i < 12; i++) {
       const h = 2.1 + Math.random() * 1.6
       const slim = i % 3 === 0
-      const tower = makeBuilding(
-        slim ? 0.38 : 0.52,
-        h,
-        slim ? 0.55 : 0.48,
-        i % 3 === 0 ? 0xe7f2f4 : i % 3 === 1 ? 0xb8c0c6 : 0xd9b87a,
-        true,
-        900 + i * 17,
-      )
+      const tower =
+        assetBuilding(h, this.rng + 0.5 + i * 0.13) ??
+        makeBuilding(
+          slim ? 0.38 : 0.52,
+          h,
+          slim ? 0.55 : 0.48,
+          i % 3 === 0 ? 0xe7f2f4 : i % 3 === 1 ? 0xb8c0c6 : 0xd9b87a,
+          true,
+          900 + i * 17,
+        )
       const ang = (i / 12) * Math.PI * 2
       const r = 1.65 + (i % 4) * 0.38
       tower.position.set(
@@ -1294,17 +1400,19 @@ export class ImpactVignette {
     const wallColors = [0xd9b87a, 0xf2e6d0, 0xc4a06a, 0xe8dcc8, 0xb8a078]
     const houseStyles = ['cottage', 'farmhouse', 'barn', 'bungalow'] as const
     for (let i = 0; i < 12; i++) {
-      const cottage = makeCottage(
-        wallColors[i % wallColors.length]!,
-        roofColors[i % roofColors.length]!,
-        houseStyles[i % houseStyles.length],
-      )
+      const cottage =
+        assetHouse(this.rng + i * 0.19) ??
+        makeCottage(
+          wallColors[i % wallColors.length]!,
+          roofColors[i % roofColors.length]!,
+          houseStyles[i % houseStyles.length],
+        )
       const x = this.stageBlastX - 5.5 + (i % 6) * 1.2 + (i >= 6 ? 0.4 : 0)
       const z = 1.55 + Math.floor(i / 6) * 1.7 + (i % 3) * 0.35 + Math.sin(i * 1.7) * 0.2
       if (Math.hypot(x - this.stageBlastX, z - this.stageBlastZ) < 1.6) continue
       cottage.position.set(x, gy, z)
-      cottage.rotation.y = (Math.random() - 0.5) * 0.45
-      cottage.scale.setScalar(0.9 + (i % 3) * 0.08)
+      cottage.rotation.y += (Math.random() - 0.5) * 0.35
+      cottage.scale.multiplyScalar(0.9 + (i % 3) * 0.08)
       this.markDestruct(cottage, 'house', { mass: 0.85, seed: Math.random() })
       this.root.add(cottage)
     }
@@ -1324,12 +1432,12 @@ export class ImpactVignette {
 
     for (let i = 0; i < 55; i++) {
       const style = i % 5 === 0 ? 'round' : i % 7 === 0 ? 'bush' : 'pine'
-      const tree = makeTree(style)
+      const tree = assetTree(style, this.rng + i * 0.05) ?? makeTree(style)
       const x = this.stageBlastX + (Math.random() - 0.5) * 13
       const z = 1.1 + Math.random() * Math.max(4.5, this.stageBlastZ - 1.2)
       if (Math.hypot(x - this.stageBlastX, z - this.stageBlastZ) < 1.4) continue
       tree.position.set(x, gy, z)
-      tree.scale.setScalar(0.85 + Math.random() * 0.4)
+      tree.scale.multiplyScalar(0.85 + Math.random() * 0.4)
       this.markDestruct(tree, 'tree', { mass: 0.42, seed: Math.random() })
       this.root.add(tree)
     }
@@ -1347,7 +1455,9 @@ export class ImpactVignette {
     this.root.add(rock)
 
     for (let i = 0; i < 32; i++) {
-      const boulder = makeBoulder(0.12 + Math.random() * 0.28)
+      const size = 0.12 + Math.random() * 0.28
+      const boulder =
+        assetRock(size, this.rng + i * 0.09, i % 3 === 0) ?? makeBoulder(size)
       const x = this.stageBlastX + (Math.random() - 0.5) * 10
       const z = 1.3 + Math.random() * 5
       if (Math.hypot(x - this.stageBlastX, z - this.stageBlastZ) < 1.3) continue
@@ -1359,7 +1469,7 @@ export class ImpactVignette {
 
     for (let i = 0; i < 16; i++) {
       const h = 1.9 + Math.random() * 2.7
-      const peak = makePeak(h)
+      const peak = assetPeak(h, this.rng + i * 0.21) ?? makePeak(h)
       const x = (i - 7.5) * 1.05
       const z = 1.7 + (i % 4) * 1.05
       if (Math.hypot(x - this.stageBlastX, z - this.stageBlastZ) < 1.5) {
@@ -1372,9 +1482,9 @@ export class ImpactVignette {
       this.root.add(peak)
     }
 
-    for (let i = 0; i < 22; i++) {
-      const tree = makeTree('pine')
-      tree.scale.setScalar(0.7 + Math.random() * 0.35)
+    for (let i = 0; i < 28; i++) {
+      const tree = assetTree('pine', this.rng + i * 0.07) ?? makeTree('pine')
+      tree.scale.multiplyScalar(0.7 + Math.random() * 0.35)
       tree.position.set(
         this.stageBlastX + (Math.random() - 0.5) * 11,
         gy,

@@ -13,8 +13,8 @@ export const MUSHROOM_FORMED_AT = 3.0
  * Surface diorama then cut to orbital cam.
  * Leave early (mid-bloom) so the cap finishes rising in aerial view.
  */
-/** Surface diorama runtime — long enough for the collapse cascade to read. */
-export const GROUND_POV_UNTIL = 2.35
+/** Surface diorama runtime — hold → slow-mo → brutal cascade, then orbital cut. */
+export const GROUND_POV_UNTIL = 3.55
 /** Total explode phase length (ground POV → grow → hold → fade). */
 const MUSHROOM_DURATION = 10.5
 /** Matches land shell in world.ts — detonate on first contact with the surface. */
@@ -323,16 +323,17 @@ export class Nuke {
       lathe(
         [
           [0.0, 0.0],
-          [0.36, 0.0],
-          [0.34, 0.35],
-          [0.32, 1.2],
-          [0.3, 2.4],
-          [0.29, 3.6],
-          [0.32, 4.4],
-          [0.42, 4.9],
-          [0.0, 5.0],
+          [0.42, 0.0],
+          [0.38, 0.25],
+          [0.33, 0.8],
+          [0.3, 1.8],
+          [0.28, 3.0],
+          [0.3, 4.0],
+          [0.38, 4.6],
+          [0.55, 4.95],
+          [0.0, 5.05],
         ],
-        12,
+        14,
       ),
       this.stemMat,
     )
@@ -390,7 +391,7 @@ export class Nuke {
     this.cap.visible = false
     this.mushroom.add(this.cap)
 
-    // Secondary puff lobes for a chunkier studio silhouette
+    // Secondary puff lobes — denser ring + a few upper wisp balls
     this.puffClouds = []
     const puffMat = new THREE.MeshStandardMaterial({
       color: 0xe8e0d4,
@@ -402,12 +403,16 @@ export class Nuke {
       opacity: 0.85,
       depthWrite: false,
     })
-    for (let i = 0; i < 6; i++) {
-      const puff = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55, 0), puffMat.clone())
+    for (let i = 0; i < 10; i++) {
+      const puff = new THREE.Mesh(
+        new THREE.IcosahedronGeometry(0.42 + (i % 3) * 0.12, 0),
+        puffMat.clone(),
+      )
       puff.visible = false
-      const a = (i / 6) * Math.PI * 2
+      const a = (i / 10) * Math.PI * 2
       puff.userData.angle = a
-      puff.userData.radius = 2.2 + (i % 3) * 0.35
+      puff.userData.radius = 2.0 + (i % 4) * 0.4
+      puff.userData.yBias = i < 8 ? 0 : 0.55 + (i % 2) * 0.25
       this.mushroom.add(puff)
       this.puffClouds.push(puff)
     }
@@ -614,19 +619,26 @@ export class Nuke {
     return false
   }
 
-  /** Jump to formed mushroom for SKIP — keeps impact lat/lon. */
+  /**
+   * Jump to post-mushroom end state for SKIP / Space —
+   * cloud fully faded, FX off; keeps impact lat/lon.
+   */
   skipToReveal() {
     if (this.state === 'falling') return false
     if (this.state !== 'exploding' && this.state !== 'done') return false
-    this.explodeT = Math.max(this.explodeT, Math.max(MUSHROOM_FORMED_AT, GROUND_POV_UNTIL))
+    this.explodeT = MUSHROOM_DURATION
+    this.state = 'done'
     this.fireball.visible = false
     this.fireballInner.visible = false
     this.shockwave.visible = false
     this.shockwave2.visible = false
     this.heatHaze.visible = false
     this.blastLight.intensity = 0
-    const mt = Math.max(0, this.explodeT - VIGNETTE_UNTIL)
-    this.updateMushroom(mt, this.loadout.blastScale, 0)
+    this.mushroom.visible = false
+    this.hitMarker.visible = false
+    this.embers.visible = false
+    this.setMushroomTransparent(false)
+    this.resetMushroomPose()
     return true
   }
 
@@ -784,7 +796,12 @@ export class Nuke {
       if (!show) continue
       const a = (puff.userData.angle as number) + t * 0.12
       const r = (puff.userData.radius as number) * capW * 0.85
-      puff.position.set(Math.cos(a) * r, capY + Math.sin(t * 1.5 + i) * 0.15 * unit, Math.sin(a) * r)
+      const yBias = (puff.userData.yBias as number | undefined) ?? 0
+      puff.position.set(
+        Math.cos(a) * r,
+        capY + yBias * unit + Math.sin(t * 1.5 + i) * 0.15 * unit,
+        Math.sin(a) * r,
+      )
       const s = (0.35 + bloom * 0.7 + (i % 3) * 0.08) * unit
       puff.scale.setScalar(s)
       const pm = puff.material as THREE.MeshStandardMaterial

@@ -797,6 +797,19 @@ body,
   color: var(--coral);
 }
 
+#plane-select,
+#nuke-select {
+  padding: 0.35rem 0.2rem;
+  border: 1px solid transparent;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+#plane-select.loadout-focus,
+#nuke-select.loadout-focus {
+  border-color: rgba(232, 93, 58, 0.45);
+  background: rgba(232, 93, 58, 0.06);
+}
+
 .slider {
   display: grid;
   grid-template-columns: auto 1fr auto;

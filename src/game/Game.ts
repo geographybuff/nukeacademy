@@ -6,6 +6,7 @@ import { pickDailyCountry, pickRandomCountry, scoreDrop, type Country } from './
 import { EARTH_RADIUS, enuFrame, latLonToVector3 } from './geo'
 import { classifyImpact, type ImpactTerrain } from './cities'
 import { ImpactVignette } from './ImpactVignette'
+import { preloadDioramaAssets } from './dioramaAssets'
 import { estimateCasualties, formatCasualties } from './casualties'
 import { buildHitClause, targetHudParts } from './geoLore'
 import { NUKES, PLANES, type NukeLoadout, type PlaneLoadout } from './loadouts'
@@ -71,6 +72,8 @@ export class Game {
   private selectedNuke: NukeLoadout = NUKES[1]!
   private planeSlider: LoadoutSlider | null = null
   private nukeSlider: LoadoutSlider | null = null
+  /** Which loadout row keyboard arrows control on the gear screen. */
+  private loadoutFocus: 'plane' | 'nuke' = 'plane'
   private heroPreview: HeroPreview | null = null
 
   private keys = {
@@ -317,7 +320,7 @@ export class Game {
   }
 
   private async init() {
-    await this.world.load()
+    await Promise.all([this.world.load(), preloadDioramaAssets()])
 
     this.dailyCapital = pickDailyCountry(this.world.targets)
     this.refreshDailyExamUi()
@@ -447,9 +450,36 @@ export class Game {
     const loadoutSubEl = document.querySelector('.loadout-sub')
     if (loadoutSubEl) loadoutSubEl.textContent = loadoutSub()
     this.buildLoadoutUi()
+    this.setLoadoutFocus('plane')
     this.els.startBtn.disabled = false
     this.els.startBtn.textContent = copy().takeOff
     this.phase = 'title'
+  }
+
+  private setLoadoutFocus(focus: 'plane' | 'nuke') {
+    this.loadoutFocus = focus
+    this.els.planeSelect.classList.toggle('loadout-focus', focus === 'plane')
+    this.els.nukeSelect.classList.toggle('loadout-focus', focus === 'nuke')
+  }
+
+  /** Arrow keys cycle the focused row; Space advances plane → nuke → takeoff. */
+  private handleLoadoutKeys(code: string): boolean {
+    if (this.phase !== 'title') return false
+    if (code === 'ArrowLeft' || code === 'ArrowRight') {
+      const slider = this.loadoutFocus === 'plane' ? this.planeSlider : this.nukeSlider
+      slider?.step(code === 'ArrowRight' ? 1 : -1)
+      return true
+    }
+    if (code === 'Space') {
+      if (this.loadoutFocus === 'plane') {
+        this.audio.ui()
+        this.setLoadoutFocus('nuke')
+      } else {
+        this.start()
+      }
+      return true
+    }
+    return false
   }
 
   private setupScene() {
@@ -550,10 +580,14 @@ export class Game {
     }
 
     window.addEventListener('keydown', (e) => {
+      if (this.handleLoadoutKeys(e.code)) {
+        e.preventDefault()
+        return
+      }
       setKey(e.code, true)
       if (e.code === 'Space') {
         e.preventDefault()
-        this.tryDrop()
+        this.handleSpace()
       }
       if (e.code === 'KeyR' && (this.phase === 'result' || this.phase === 'flying')) {
         this.nextRound()
@@ -904,6 +938,39 @@ export class Game {
     this.els.targetLabel.textContent = label
   }
 
+  /** Space: drop in flight, skip cinema to end, or press result / briefing CTA. */
+  private handleSpace() {
+    if (this.phase === 'cinematic') {
+      // Only after impact — fall still uses the overlook / skip once exploding
+      if (this.nuke.state === 'exploding' || this.nuke.state === 'done') {
+        this.skipCinematic()
+      }
+      return
+    }
+    if (this.phase === 'result') {
+      this.activateResultPrimary()
+      return
+    }
+    if (this.phase === 'briefing') {
+      if (!this.els.briefingContinue.classList.contains('hidden')) this.finishBriefing()
+      return
+    }
+    this.tryDrop()
+  }
+
+  /** Result card primary: BEAT THIS (shared) or NEXT EXAM. */
+  private activateResultPrimary() {
+    if (!this.els.overlay.classList.contains('hidden')) {
+      if (!this.els.playBtn.classList.contains('hidden')) {
+        this.beatThis()
+        return
+      }
+      if (!this.els.retryBtn.classList.contains('hidden')) {
+        this.nextRound()
+      }
+    }
+  }
+
   private tryDrop() {
     if (this.phase !== 'flying' || !this.canDrop) return
     this.canDrop = false
@@ -1239,9 +1306,9 @@ export class Game {
   }
 
   private revealHoldNeed(): number {
-    // Brief beat on the orbital mushroom + arc before the report card.
+    // Orbital mushroom + arc linger — long enough for the cloud to settle/fade.
     const coarse = window.matchMedia('(pointer: coarse)').matches
-    return coarse ? 4.2 : 3.2
+    return coarse ? 6.4 : 5.4
   }
 
   private skipCinematic() {
@@ -1385,12 +1452,12 @@ export class Game {
         }
         const wind = this.vignette.shakeAmount()
         if (wind > 0.03) {
-          // Handheld — stronger on the shock punch, then cascade rattle
+          // Handheld — soft during hold/slow-mo, violent once the cascade rips
           const kick = wind * wind
-          this.camera.position.x += (Math.random() - 0.5) * kick * 0.14
-          this.camera.position.y += (Math.random() - 0.5) * kick * 0.09
-          this.camera.position.z += (Math.random() - 0.5) * kick * 0.14
-          this.camera.rotation.z += (Math.random() - 0.5) * kick * 0.018
+          this.camera.position.x += (Math.random() - 0.5) * kick * 0.22
+          this.camera.position.y += (Math.random() - 0.5) * kick * 0.14
+          this.camera.position.z += (Math.random() - 0.5) * kick * 0.22
+          this.camera.rotation.z += (Math.random() - 0.5) * kick * 0.028
         }
         return
       }
