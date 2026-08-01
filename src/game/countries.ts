@@ -215,14 +215,20 @@ export const utcDayKey = examDayKey
 
 /** First daily exam — pinned so launch opens on Argentina (Yerevan day). */
 export const DAILY_LAUNCH_DAY = '2026-08-01'
-const DAILY_LAUNCH_TARGET_ID = 'ARG'
+
+/** Override hashed picks for specific academy days (ISO keys → ADM0_A3). */
+const PINNED_DAILY_TARGETS: Record<string, string> = {
+  [DAILY_LAUNCH_DAY]: 'ARG',
+  '2026-08-02': 'ISR',
+}
 
 /** Same capital for every player on the same academy (Yerevan) day. */
 export function pickDailyCountry(pool: Country[], day = examDayKey()): Country {
   if (pool.length === 0) throw new Error('No countries')
   const sorted = [...pool].sort((a, b) => a.id.localeCompare(b.id))
-  if (day === DAILY_LAUNCH_DAY) {
-    const pinned = sorted.find((c) => c.id === DAILY_LAUNCH_TARGET_ID)
+  const pinnedId = PINNED_DAILY_TARGETS[day]
+  if (pinnedId) {
+    const pinned = sorted.find((c) => c.id === pinnedId)
     if (pinned) return pinned
   }
   let h = 2166136261
