@@ -1,0 +1,1096 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>NUKE ACADEMY · Launch pilot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b1c22;
+        --panel: #122830;
+        --ink: #e8f0f2;
+        --muted: #8aa3ad;
+        --coral: #e85d3a;
+        --sand: #d9b87a;
+        --line: #243840;
+        --ok: #6d9658;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(ellipse 80% 50% at 20% -10%, #1a3a44 0%, transparent 55%),
+          radial-gradient(ellipse 60% 40% at 90% 10%, #2a1a14 0%, transparent 45%),
+          var(--bg);
+        color: var(--ink);
+        font-family: 'IBM Plex Mono', ui-monospace, monospace;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+      }
+      header h1 {
+        font-family: 'Bebas Neue', Impact, sans-serif;
+        font-size: clamp(2.4rem, 8vw, 3.6rem);
+        letter-spacing: 0.06em;
+        margin: 0 0 0.25rem;
+        color: var(--ink);
+      }
+      header .sub {
+        color: var(--muted);
+        margin: 0 0 1.25rem;
+        font-size: 12px;
+      }
+      .status {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.25rem;
+        align-items: center;
+        padding: 0.85rem 1rem;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        margin-bottom: 1.5rem;
+        position: sticky;
+        top: 0;
+        z-index: 5;
+      }
+      .status strong {
+        color: var(--sand);
+        font-weight: 600;
+      }
+      .progress {
+        flex: 1;
+        min-width: 140px;
+        height: 6px;
+        background: var(--line);
+        overflow: hidden;
+      }
+      .progress > i {
+        display: block;
+        height: 100%;
+        width: 0%;
+        background: var(--coral);
+        transition: width 0.2s ease;
+      }
+      .tools {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      button {
+        font: inherit;
+        cursor: pointer;
+        border: 1px solid var(--line);
+        background: transparent;
+        color: var(--muted);
+        padding: 0.35rem 0.65rem;
+      }
+      button:hover {
+        color: var(--ink);
+        border-color: var(--muted);
+      }
+      button.danger:hover {
+        color: var(--coral);
+        border-color: var(--coral);
+      }
+      button.copy {
+        font-size: 11px;
+        padding: 0.25rem 0.5rem;
+        color: var(--sand);
+        border-color: var(--line);
+      }
+      button.copy:hover {
+        color: var(--coral);
+        border-color: var(--coral);
+      }
+      button.copy.ok {
+        color: var(--ok);
+        border-color: var(--ok);
+      }
+      section {
+        margin: 0 0 1.75rem;
+        border-top: 1px solid var(--line);
+        padding-top: 1.1rem;
+      }
+      section h2 {
+        font-family: 'Bebas Neue', Impact, sans-serif;
+        font-size: 1.55rem;
+        letter-spacing: 0.08em;
+        margin: 0 0 0.35rem;
+        color: var(--coral);
+      }
+      section .when {
+        color: var(--sand);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin: 0 0 0.85rem;
+      }
+      ol.steps {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        counter-reset: step;
+      }
+      ol.steps > li {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.65rem 0.75rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--line);
+        counter-increment: step;
+      }
+      ol.steps > li:last-child {
+        border-bottom: 0;
+      }
+      ol.steps label {
+        display: contents;
+        cursor: pointer;
+      }
+      ol.steps input[type='checkbox'] {
+        width: 1.1rem;
+        height: 1.1rem;
+        margin-top: 0.15rem;
+        accent-color: var(--coral);
+        cursor: pointer;
+      }
+      .body {
+        min-width: 0;
+      }
+      .title {
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .title::before {
+        content: counter(step, decimal-leading-zero) ' · ';
+        color: var(--muted);
+        font-weight: 400;
+      }
+      li.done .title {
+        color: var(--muted);
+        text-decoration: line-through;
+        text-decoration-color: var(--ok);
+      }
+      .hint {
+        margin: 0.3rem 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .hint code,
+      .paste code {
+        color: var(--sand);
+        font-size: 11px;
+      }
+      .paste-wrap {
+        margin: 0.55rem 0 0;
+        border: 1px solid var(--line);
+        background: #0a151a;
+      }
+      .paste-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.35rem 0.55rem;
+        border-bottom: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .paste {
+        margin: 0;
+        padding: 0.65rem 0.75rem;
+        color: var(--ink);
+        white-space: pre-wrap;
+        font-size: 12px;
+        max-height: 280px;
+        overflow: auto;
+      }
+      .paste.tall {
+        max-height: 420px;
+      }
+      .links {
+        margin: 0.45rem 0 0;
+        font-size: 12px;
+      }
+      .links a {
+        color: var(--coral);
+        text-decoration: none;
+      }
+      .links a:hover {
+        text-decoration: underline;
+      }
+      footer {
+        margin-top: 2rem;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .note {
+        margin: 0 0 1.25rem;
+        padding: 0.75rem 0.9rem;
+        border-left: 3px solid var(--coral);
+        background: rgba(232, 93, 58, 0.08);
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .toc {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem 0.75rem;
+        margin: 0 0 1.25rem;
+        font-size: 12px;
+      }
+      .toc a {
+        color: var(--sand);
+        text-decoration: none;
+      }
+      .toc a:hover {
+        color: var(--coral);
+      }
+      textarea.field {
+        width: 100%;
+        margin: 0.35rem 0 0.75rem;
+        padding: 0.65rem 0.75rem;
+        background: #0a151a;
+        border: 1px solid var(--line);
+        color: var(--sand);
+        font: inherit;
+        resize: vertical;
+      }
+      textarea.field.notes {
+        color: var(--ink);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>LAUNCH PILOT</h1>
+        <p class="sub">pump.fun runbook · nuke.academy/ops/launch.html · local progress only</p>
+      </header>
+
+      <p class="note">
+        Product + X are ready. Path: create on <strong>pump.fun</strong> → wire CA on site → go loud.
+        No contract verify, no freeze/mint paperwork. Paste blocks below are the posts + image/video
+        prompts for the next days. Nothing here is linked from the game.
+      </p>
+
+      <nav class="toc" aria-label="Sections">
+        <a href="#preflight">0 Preflight</a>
+        <a href="#pump">1 Pump</a>
+        <a href="#wire">2 Wire</a>
+        <a href="#socials">3 Socials</a>
+        <a href="#buys">4 Buys</a>
+        <a href="#loud">5 Go loud</a>
+        <a href="#day0">6 Day 0</a>
+        <a href="#day1">7 Day 1</a>
+        <a href="#day2">8 Day 2</a>
+        <a href="#kitchen">9 Content kitchen</a>
+        <a href="#after">10 Aftercare</a>
+      </nav>
+
+      <div class="status">
+        <div><strong id="count">0 / 0</strong> done</div>
+        <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+        <div class="tools">
+          <button type="button" id="expand">Collapse paste</button>
+          <button type="button" id="reset" class="danger">Reset checks</button>
+        </div>
+      </div>
+
+      <!-- 0 -->
+      <section id="preflight" data-phase="0">
+        <h2>0 · Preflight</h2>
+        <p class="when">Before you touch pump.fun</p>
+        <ol class="steps">
+          <li>
+            <label>
+              <input type="checkbox" data-id="0-play" />
+              <span class="body">
+                <span class="title">Smoke-test the live game</span>
+                <p class="hint">
+                  Land hit + ocean hit. Mushroom, share, challenge picker, today’s exam loads.
+                </p>
+                <p class="links"><a href="https://nuke.academy/" target="_blank" rel="noopener">nuke.academy</a></p>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="0-assets" />
+              <span class="body">
+                <span class="title">Assets ready</span>
+                <p class="hint">
+                  Logo, banner, best 6–15s bomb→mushroom <strong>video</strong> for tweet 1, 2–3 stills.
+                  No CA burned into images. Extra prompts in §9 Content kitchen.
+                </p>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="0-wallets" />
+              <span class="body">
+                <span class="title">Wallets funded</span>
+                <p class="hint">
+                  Launch wallet + 2–4 small side wallets for early pump buys. SOL for fees + buys.
+                </p>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="0-x" />
+              <span class="body">
+                <span class="title">X profile settled</span>
+                <p class="hint">@nukeacademy · site in website field · header/avatar on. Bio paste below.</p>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>X bio</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste">Illegitimate orbital finishing school.
+Only subject: NUKE. Final exam: a capital.
+Oceans are mentors. Nobody graduates.</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+        </ol>
+      </section>
+
+      <!-- 1 -->
+      <section id="pump" data-phase="1">
+        <h2>1 · Launch on pump.fun</h2>
+        <p class="when">T−0 · create coin, grab mint, move on</p>
+        <ol class="steps">
+          <li>
+            <label>
+              <input type="checkbox" data-id="1-create" />
+              <span class="body">
+                <span class="title">Create coin on pump.fun</span>
+                <p class="hint">
+                  Name/symbol: <strong>NUKES</strong> (or NUKE ACADEMY / NUKES — match site ticker).
+                  Upload logo. Description in academy voice (short). No need to verify mint authority /
+                  freeze / explorer paperwork — pump handles the coin.
+                </p>
+                <p class="links"><a href="https://pump.fun" target="_blank" rel="noopener">pump.fun</a></p>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>pump description</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste">NUKE ACADEMY — illegitimate orbital finishing school.
+Only subject: NUKE. Final exam: hit a capital.
+Closer = more points. Oceans are mentors.
+https://nuke.academy</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="1-ca" />
+              <span class="body">
+                <span class="title">Copy mint CA → scratchpad below</span>
+                <p class="hint">
+                  Live:
+                  <a href="https://pump.fun/coin/5E66C8ZgZ3DuwFWW8bCZCBPhn9oGSysNwTsbcF79pump" target="_blank" rel="noopener">pump.fun/coin/…79pump</a>
+                </p>
+              </span>
+            </label>
+          </li>
+        </ol>
+      </section>
+
+      <!-- 2 -->
+      <section id="wire" data-phase="2">
+        <h2>2 · Wire the site</h2>
+        <p class="when">Right after mint exists · before loud tweets</p>
+        <ol class="steps">
+          <li>
+            <label>
+              <input type="checkbox" data-id="2-vercel" />
+              <span class="body">
+                <span class="title">Set Vercel env + redeploy</span>
+                <p class="hint">
+                  Live:<br />
+                  <code>VITE_NUKE_CA=5E66C8ZgZ3DuwFWW8bCZCBPhn9oGSysNwTsbcF79pump</code><br />
+                  <code>VITE_DEX_URL=https://dexscreener.com/solana/2hebcuxgablok2tfcxga2mvaxwe4ccvru5kwuhvlnfrj</code><br />
+                  <code>VITE_X_URL=https://x.com/nukeacademy</code><br />
+                  Set in Vercel → redeploy. (BUY NUKES → Dexscreener.)
+                </p>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="2-ui" />
+              <span class="body">
+                <span class="title">Confirm COPY CA + BUY NUKES</span>
+                <p class="hint">
+                  Hard-refresh nuke.academy. COPY CA pastes mint. BUY opens your pump coin page.
+                </p>
+              </span>
+            </label>
+          </li>
+        </ol>
+      </section>
+
+      <!-- 3 -->
+      <section id="socials" data-phase="3">
+        <h2>3 · Socials polish</h2>
+        <p class="when">Make the coin + profile look intentional</p>
+        <ol class="steps">
+          <li>
+            <label>
+              <input type="checkbox" data-id="3-pump" />
+              <span class="body">
+                <span class="title">Pump coin page looks right</span>
+                <p class="hint">Logo, name, website https://nuke.academy, Twitter @nukeacademy if fields exist.</p>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="3-x" />
+              <span class="body">
+                <span class="title">X website field = nuke.academy</span>
+                <p class="hint">Don’t put CA in bio — pin + site COPY CA is cleaner. Dexscreener later optional.</p>
+                <p class="links">
+                  <a href="https://x.com/nukeacademy" target="_blank" rel="noopener">@nukeacademy</a>
+                </p>
+              </span>
+            </label>
+          </li>
+        </ol>
+      </section>
+
+      <!-- 4 -->
+      <section id="buys" data-phase="4">
+        <h2>4 · Side-wallet buys</h2>
+        <p class="when">Quiet · before or as CA goes public</p>
+        <ol class="steps">
+          <li>
+            <label>
+              <input type="checkbox" data-id="4-buy" />
+              <span class="body">
+                <span class="title">Early buys from side wallets on pump</span>
+                <p class="hint">Stagger sizes/timings. Leave SOL for later support if that’s the plan.</p>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="4-check" />
+              <span class="body">
+                <span class="title">Sanity-check coin page + chart</span>
+                <p class="hint">If it looks broken, pause socials.</p>
+              </span>
+            </label>
+          </li>
+        </ol>
+      </section>
+
+      <!-- 5 -->
+      <section id="loud" data-phase="5">
+        <h2>5 · Go loud on X</h2>
+        <p class="when">Public CA moment · tweet 1 = VIDEO</p>
+        <ol class="steps">
+          <li>
+            <label>
+              <input type="checkbox" data-id="5-t1" />
+              <span class="body">
+                <span class="title">Thread 1/4 — hook · PIN THIS · attach video</span>
+                <p class="hint">Best 6–15s bomb→mushroom clip. Vertical or square.</p>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>1/4</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste">BREAKING NEWS: NUKE ACADEMY is live.
+
+Illegitimate orbital finishing school.
+Only subject: NUKE.
+Final exam: hit a capital.
+
+Play → https://nuke.academy</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="5-t2" />
+              <span class="body">
+                <span class="title">Thread 2/4 — syllabus</span>
+                <p class="hint">Optional still: plane + payload or bomb macro.</p>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>2/4</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste">How class works:
+
+• Select aircraft. Select nuke.
+• Orbit Earth. Drop on the capital.
+• Closer = more points.
+• Ocean = detention (Ocean Studies).
+
+Faculty does not offer refunds.
+We offer rematches.</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="5-t3" />
+              <span class="body">
+                <span class="title">Thread 3/4 — token (light)</span>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>3/4</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste">$NUKES powers the academy.
+
+CA → COPY CA on the site
+Buy → pump / BUY NUKES on the site
+
+We don’t do diplomacy.
+We do drop altitude.</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="5-t4" />
+              <span class="body">
+                <span class="title">Thread 4/4 — CTA</span>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>4/4</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste">Sparrow class is in session.
+
+If your capital is glowing, that’s the assignment.
+Challenge a friend. Shame them with kilometers.
+
+Dark humor only: the globe is cute on purpose.
+The bomb is the joke.
+
+https://nuke.academy</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="5-ca" />
+              <span class="body">
+                <span class="title">CA follow-up (plain · no media)</span>
+                <p class="hint">Replace mint everywhere. Easy copy for quote-RTs.</p>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>CA post</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste">$NUKES CA
+
+5E66C8ZgZ3DuwFWW8bCZCBPhn9oGSysNwTsbcF79pump
+
+Chart: https://dexscreener.com/solana/2hebcuxgablok2tfcxga2mvaxwe4ccvru5kwuhvlnfrj
+Pump: https://pump.fun/coin/5E66C8ZgZ3DuwFWW8bCZCBPhn9oGSysNwTsbcF79pump
+Game: https://nuke.academy</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="5-gameplay" />
+              <span class="body">
+                <span class="title">Reply under pin with real gameplay share</span>
+                <p class="hint">In-game SHARE ON X → breaking card. Or paste below.</p>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>gameplay reply</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste">Faculty reviewed a transcript from orbit.
+
+Same capital. Less mercy.
+Beat this or take Ocean Studies.
+
+https://nuke.academy</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="5-engage" />
+              <span class="body">
+                <span class="title">15-minute reply window</span>
+                <p class="hint">
+                  what is this → geography nuke game + link · CA? → site COPY CA / CA tweet · too dark →
+                  toy globe on purpose, bomb is the joke
+                </p>
+              </span>
+            </label>
+          </li>
+        </ol>
+      </section>
+
+      <!-- 6 -->
+      <section id="day0" data-phase="6">
+        <h2>6 · Day 0 leftovers</h2>
+        <p class="when">Same calendar day</p>
+        <ol class="steps">
+          <li>
+            <label>
+              <input type="checkbox" data-id="6-second" />
+              <span class="body">
+                <span class="title">Second post — country gag / clip</span>
+                <p class="hint">Attach France / US / Japan 6s loop if you have it (prompts in §9).</p>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>Day 0 #2</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste">Today’s exam is open.
+
+Sparrow class. Oversized curriculum.
+Hit a capital. Oceans remain undefeated… or not.
+
+https://nuke.academy</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="6-challenge" />
+              <span class="body">
+                <span class="title">Optional — challenge deep link</span>
+                <p class="hint">From in-game Challenge a friend → share real /nuke/{slug}.</p>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>challenge</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste">Assignment: {COUNTRY}.
+
+Open the link → same capital → closer wins.
+Or flunk into the Atlantic with dignity.
+
+https://nuke.academy/nuke/{slug}</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+        </ol>
+      </section>
+
+      <!-- 7 -->
+      <section id="day1" data-phase="7">
+        <h2>7 · Day 1 posts</h2>
+        <p class="when">Launch + 1</p>
+        <ol class="steps">
+          <li>
+            <label>
+              <input type="checkbox" data-id="7-am" />
+              <span class="body">
+                <span class="title">Morning — gameplay</span>
+                <p class="hint">Fresh SHARE ON X or generate a 6s loop from §9.</p>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>Day 1 AM</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste">Faculty report from orbit.
+
+Drop on a capital. Post the transcript.
+Closer = more points.
+
+https://nuke.academy</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="7-pm" />
+              <span class="body">
+                <span class="title">Evening — token (light)</span>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>Day 1 PM</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste">$NUKES powers the academy.
+
+Play first. Buy if the syllabus insults you.
+
+https://nuke.academy
+CA in COPY CA on the site.</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+        </ol>
+      </section>
+
+      <!-- 8 -->
+      <section id="day2" data-phase="8">
+        <h2>8 · Day 2 posts</h2>
+        <p class="when">Launch + 2</p>
+        <ol class="steps">
+          <li>
+            <label>
+              <input type="checkbox" data-id="8-country" />
+              <span class="body">
+                <span class="title">Country gag / roast</span>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>Day 2 roast</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste">If your capital is glowing, that’s the assignment.
+
+Dark humor only: the globe is cute on purpose.
+The bomb is the joke.
+
+https://nuke.academy</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="8-challenge" />
+              <span class="body">
+                <span class="title">Challenge post</span>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>Day 2 challenge</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste">Beat someone’s transcript.
+
+Same capital. Closer km wins.
+Or just nuke Argentina because faculty said so.
+
+https://nuke.academy</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+        </ol>
+      </section>
+
+      <!-- 9 Content kitchen -->
+      <section id="kitchen" data-phase="9">
+        <h2>9 · Content kitchen</h2>
+        <p class="when">Copy-paste into image/video models · next days</p>
+        <ol class="steps">
+          <li>
+            <label>
+              <input type="checkbox" data-id="9-captions" />
+              <span class="body">
+                <span class="title">Short captions (post text only)</span>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>captions</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste">France just got homework. nuke.academy
+
+Tokyo silhouette. Coral mushroom. No notes. https://nuke.academy
+
+If your capital is glowing, that’s the assignment. nuke.academy
+
+Sparrow class. Oversized curriculum. United States is the exam. https://nuke.academy
+
+We don’t do diplomacy. We do drop altitude. $NUKES
+
+Dark humor only: the globe is cute on purpose. The bomb is the joke. https://nuke.academy
+
+TODAY’S EXAM: {{COUNTRY}}. Attendance optional. Humiliation mandatory. nuke.academy
+
+BEAT THIS or take Ocean Studies. Same capital. Less mercy. https://nuke.academy</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="9-vid-a" />
+              <span class="body">
+                <span class="title">Video prompt — 12s bomb story · 9:16</span>
+                <p class="hint">Hero launch / reuse anytime. Bomb first. No HUD, no CA on screen.</p>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>prompt A</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste tall">12-second vertical video. Shot 0–3s: low-poly sparrow plane over Earth night side, capital glow ahead, deep teal-black space, sparse stars. Shot 3–7s: oversized cartoon nuke releases, camera rides the fall on a coral trail, ground rushing up, bomb is the hero. Shot 7–10s: coral impact flash and mushroom bloom, toy globe mildly inconvenienced. Shot 10–12s: hard cut to title card “NUKE ACADEMY” on teal-black with smaller line “HIT A CAPITAL”. No voiceover, no HUD, no score popups, no kilometers, no CA, no URL on screen. Cold audience should understand “plane drops nuke on capital” with zero prior context. Style throughout: low-poly 3D browser-game aesthetic, flat shading, chunky geometry, spherical Earth from low orbit, deep teal-black space, sparse stars, soft volumetric god-rays, muted olive continents, warm sand highlights, coral-orange accent light from atmosphere and blast glow; typography on endcard only: heavy condensed display sans (Bebas Neue vibe), all caps, letterspaced; mood illegitimate finishing school dark humor — deadpan, academic, absurd — never military recruitment, never photoreal corpses. Avoid: photoreal war, blood, corpses, soldiers, political flags as propaganda, UI HUD, scoreboard, kilometers, GPS pins, app store screenshot chrome, purple neon cyberpunk, cute stickers, emoji, watermark of other brands, readable fake CA addresses, score numbers, km readouts, buttons.</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="9-vid-fr" />
+              <span class="body">
+                <span class="title">Video prompt — 6s France roast loop · 9:16</span>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>prompt B</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste tall">6-second vertical loop: oversized cartoon nuke falls toward a toy-globe capital glow that clearly suggests France; coral contrail; mushroom pops; brief hold; smash cut back to the release and repeat. No text in the video frame. Bomb stays the visual hero every second. No HUD, no scores, no kilometers. Style throughout: low-poly 3D browser-game aesthetic, flat shading, chunky geometry, spherical Earth from low orbit, deep teal-black space, sparse stars, soft volumetric god-rays, muted olive continents, warm sand highlights, coral-orange accent light from atmosphere and blast glow; typography if any: heavy condensed display sans (Bebas Neue vibe), all caps, letterspaced — none in this video; mood illegitimate finishing school dark humor — deadpan, academic, absurd — never military recruitment, never photoreal corpses. Avoid: photoreal war, blood, corpses, soldiers, political flags as propaganda, UI HUD, scoreboard, kilometers, GPS pins, app store screenshot chrome, purple neon cyberpunk, cute stickers, emoji, watermark of other brands, readable fake CA addresses, score numbers, km readouts, buttons.</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="9-vid-jp" />
+              <span class="body">
+                <span class="title">Video prompt — 6s Japan roast loop · 9:16</span>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>prompt C</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste tall">6-second vertical loop: oversized cartoon nuke falls toward a toy-globe capital glow that suggests Japan by island silhouette only; coral contrail; mushroom pops; brief hold; smash cut back to the release and repeat. No text in the video frame, no kanji. Bomb stays the visual hero every second. No HUD, no scores, no kilometers. Style throughout: low-poly 3D browser-game aesthetic, flat shading, chunky geometry, spherical Earth from low orbit, deep teal-black space, sparse stars, soft volumetric god-rays, muted olive continents, warm sand highlights, coral-orange accent light from atmosphere and blast glow; typography if any: heavy condensed display sans (Bebas Neue vibe), all caps, letterspaced — none in this video; mood illegitimate finishing school dark humor — deadpan, academic, absurd — never military recruitment, never photoreal corpses. Avoid: photoreal war, blood, corpses, soldiers, political flags as propaganda, UI HUD, scoreboard, kilometers, GPS pins, app store screenshot chrome, purple neon cyberpunk, cute stickers, emoji, watermark of other brands, readable fake CA addresses, score numbers, km readouts, buttons.</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="9-vid-us" />
+              <span class="body">
+                <span class="title">Video prompt — 6s United States roast loop · 9:16</span>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>prompt D</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste tall">6-second vertical loop: oversized cartoon nuke falls toward a toy-globe capital glow roughly where Washington sits on simplified North America; coral contrail; mushroom pops; brief hold; smash cut back to the release and repeat. No text, no flag, no presidents in frame. Bomb stays the visual hero every second. No HUD, no scores, no kilometers. Style throughout: low-poly 3D browser-game aesthetic, flat shading, chunky geometry, spherical Earth from low orbit, deep teal-black space, sparse stars, soft volumetric god-rays, muted olive continents, warm sand highlights, coral-orange accent light from atmosphere and blast glow; typography if any: heavy condensed display sans (Bebas Neue vibe), all caps, letterspaced — none in this video; mood illegitimate finishing school dark humor — deadpan, academic, absurd — never military recruitment, never photoreal corpses. Avoid: photoreal war, blood, corpses, soldiers, political flags as propaganda, UI HUD, scoreboard, kilometers, GPS pins, app store screenshot chrome, purple neon cyberpunk, cute stickers, emoji, watermark of other brands, readable fake CA addresses, score numbers, km readouts, buttons.</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="9-vid-sting" />
+              <span class="body">
+                <span class="title">Video prompt — 4s product sting · 1:1</span>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>prompt E</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste tall">4-second square video: macro cartoon low-poly nuke warhead spins slowly against blurred spherical Earth; tip flares coral; quick cut to mushroom bloom; end; no words on screen. Bomb is the entire product. No photoreal weapons-catalog look, no HUD, no scores, no kilometers, no CA. Style throughout: low-poly 3D browser-game aesthetic, flat shading, chunky geometry, deep teal-black space bokeh, sparse stars, soft volumetric god-rays, warm sand panel highlights, coral-orange accent light; typography if any: heavy condensed display sans (Bebas Neue vibe), all caps, letterspaced — none in this video; mood illegitimate finishing school dark humor — deadpan, academic, absurd — never military recruitment, never photoreal corpses. Avoid: photoreal war, blood, corpses, soldiers, political flags as propaganda, UI HUD, scoreboard, kilometers, GPS pins, app store screenshot chrome, purple neon cyberpunk, cute stickers, emoji, watermark of other brands, readable fake CA addresses, score numbers, km readouts, buttons.</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="9-img-hook" />
+              <span class="body">
+                <span class="title">Still — hook drop · 9:16</span>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>still 1</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste tall">A tiny sparrow-like bomber in low orbit above a toy spherical Earth releases a cartoon pointed nuke; the bomb falls on a bright coral trail toward a glowing unmarked capital on a recognizable coastline that reads as France. Night side of Earth, thin orange atmosphere limb, deep teal-black space, sparse stars. Vertical frame, bomb is the hero of the shot, huge relative to the plane, motion blur only on the warhead. No text, no HUD, no people, no flags as political posters, no score numbers, no kilometers. Brand for cold audiences: this should read as a funny nuke drop on a capital even if you never heard of the game. Style: low-poly 3D browser-game aesthetic, flat shading, chunky geometry, spherical Earth from low orbit, deep teal-black space, sparse stars, soft volumetric god-rays, muted olive continents, warm sand highlights, coral-orange accent light from atmosphere and blast glow; typography if any would be heavy condensed display sans (Bebas Neue vibe), all caps, letterspaced — but this prompt has no text; mood illegitimate finishing school dark humor — deadpan, academic, absurd — never military recruitment, never photoreal corpses. Avoid: photoreal war, blood, corpses, soldiers, political flags as propaganda, UI HUD, scoreboard, kilometers, GPS pins, app store screenshot chrome, purple neon cyberpunk, cute stickers, emoji, watermark of other brands, readable fake CA addresses, score numbers, km readouts, buttons.</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="9-img-mush" />
+              <span class="body">
+                <span class="title">Still — mushroom punchline · 1:1</span>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>still 2</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste tall">Low-poly mushroom cloud blooming over a coastal capital zone that suggests Japan’s shape on a small toy globe; soft orange-cream stem, sand-gold smoke rings, Earth still cute and round behind the blast. Camera close enough that the mushroom fills most of the square. Deadpan absurd energy: the planet looks mildly inconvenienced. No labels, no kanji, no photoreal firestorm, no HUD, no score numbers, no kilometers. Bomb/mushroom is the joke; cold audiences should get “toy nuke hit a capital” instantly. Style: low-poly 3D browser-game aesthetic, flat shading, chunky geometry, spherical Earth from low orbit, deep teal-black space, sparse stars, soft volumetric god-rays, muted olive continents, warm sand highlights, coral-orange accent light from atmosphere and blast glow; typography if any: heavy condensed display sans (Bebas Neue vibe), all caps, letterspaced — none in this image; mood illegitimate finishing school dark humor — deadpan, academic, absurd — never military recruitment, never photoreal corpses. Avoid: photoreal war, blood, corpses, soldiers, political flags as propaganda, UI HUD, scoreboard, kilometers, GPS pins, app store screenshot chrome, purple neon cyberpunk, cute stickers, emoji, watermark of other brands, readable fake CA addresses, score numbers, km readouts, buttons.</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="9-img-exam" />
+              <span class="body">
+                <span class="title">Still — TODAY’S EXAM · swap COUNTRY · 16:9</span>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>still exam</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste tall">Faculty bulletin board composition. Background: softly blurred orbital Earth. Foreground: clean academic placard with heavy type “TODAY’S EXAM” and below it the country name “{{COUNTRY}}” in larger Bebas-style caps. Tiny footer: “UTC DAY · ATTENDANCE OPTIONAL”. No capital city spelling required. No gameplay instructions. Serious memo design, absurd institution. Style: low-poly 3D game aesthetic, spherical Earth from low orbit, deep teal-black space, sparse stars, soft volumetric god-rays, muted olive continents, warm sand highlights, coral-orange accent light from atmosphere glow; typography heavy condensed display sans (Bebas Neue vibe), all caps, letterspaced; mood illegitimate finishing school propaganda — deadpan, academic, absurd — never military recruitment. Avoid: photoreal war, blood, corpses, soldiers, political flags as propaganda, UI HUD, scoreboard, kilometers, GPS pins, app store screenshot chrome, purple neon cyberpunk, cute stickers, emoji, watermarks of other brands, readable fake CA addresses, score numbers, km readouts, buttons.</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="9-img-ocean" />
+              <span class="body">
+                <span class="title">Still — Ocean Studies detention · 4:5</span>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>still ocean</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste tall">Propaganda poster: endless low-poly ocean covering almost the entire globe face, a lonely splash ring far from any land. A tiny rubber duck silhouette (optional, small) floating near the splash. Big centered type: “OCEAN STUDIES”. Smaller line under: “MANDATORY”. Coral stamp in corner: “DETENTION”. Deadpan faculty memo energy. No scores, no maps with names. Style: low-poly 3D game aesthetic, spherical Earth from low orbit, deep teal-black space, sparse stars, soft volumetric god-rays, muted olive continents, warm sand highlights, coral-orange accent light from atmosphere glow; typography heavy condensed display sans (Bebas Neue vibe), all caps, letterspaced; mood illegitimate finishing school propaganda — deadpan, academic, absurd — never military recruitment. Avoid: photoreal war, blood, corpses, soldiers, political flags as propaganda, UI HUD, scoreboard, kilometers, GPS pins, app store screenshot chrome, purple neon cyberpunk, cute stickers, emoji, watermarks of other brands, readable fake CA addresses, score numbers, km readouts, buttons.</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="9-memo" />
+              <span class="body">
+                <span class="title">Faculty memo stills (swap body line)</span>
+                <p class="hint">Same letterhead; rotate the body lines for Day 3+ spam.</p>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>memo template</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste tall">Fake institutional letterhead on dark teal paper texture with thin coral rule. Header: “NUKE ACADEMY — OFFICE OF THE DEAN”. Body in clean condensed caps: “{{MEMO_LINE}}”. Footer: “FULLY ILLEGITIMATE · ACCREDITED BY NOBODY”. Minimal ornament, slight paper grain, propaganda print feel, no Earth photo needed, no emojis. Style: heavy condensed display sans (Bebas Neue vibe), all caps, letterspaced; mood illegitimate finishing school propaganda — deadpan, academic, absurd. Avoid: photoreal war, blood, corpses, soldiers, political flags as propaganda, UI HUD, scoreboard, kilometers, GPS pins, app store screenshot chrome, purple neon cyberpunk, cute stickers, emoji, watermarks of other brands, readable fake CA addresses, score numbers, km readouts, buttons.
+
+MEMO_LINE options:
+OCEAN STUDIES IS NOW MANDATORY.
+CLOSER IS CURRICULUM. FARTHER IS CHARACTER DEVELOPMENT.
+THE RUBBER DUCK IS NOT A METAPHOR. IT IS WORSE.
+IF YOU HIT LAND, APPLY FOR EXTRA CREDIT.
+WE DO NOT OFFER REFUNDS. WE OFFER REMATCHES.
+SPARROW CLASS IS FIRST PERIOD. DIGNITY IS ELECTIVE.
+PLEASE STOP AIMING WITH YOUR FEELINGS.
+FINAL EXAM STARTS WHEN YOU PRESS NUKE IT.</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="9-country" />
+              <span class="body">
+                <span class="title">Country gag still template · 4:5 · swap place</span>
+                <div class="paste-wrap">
+                  <div class="paste-head"><span>country gag</span><button type="button" class="copy">Copy</button></div>
+                  <pre class="paste tall">Low-poly sparrow bomber banking over a simplified {{REGION}} on a spherical Earth at night; a glowing capital pinpoint; a cartoon nuke already mid-fall on a coral contrail, bomb clearly larger and more important than the plane. Big empty dark band at bottom of frame for later text overlay outside the model if needed. Mood: dark humor “final exam overseas program,” toy globe, not news footage. No presidents, no real flags waving, no HUD, no scores, no kilometers. Style: low-poly 3D browser-game aesthetic, flat shading, chunky geometry, spherical Earth from low orbit, deep teal-black space, sparse stars, soft volumetric god-rays, muted olive continents, warm sand highlights, coral-orange accent light from atmosphere and blast glow; typography if any: heavy condensed display sans (Bebas Neue vibe), all caps, letterspaced — leave type out of the image; mood illegitimate finishing school dark humor — deadpan, academic, absurd — never military recruitment, never photoreal corpses. Avoid: photoreal war, blood, corpses, soldiers, political flags as propaganda, UI HUD, scoreboard, kilometers, GPS pins, app store screenshot chrome, purple neon cyberpunk, cute stickers, emoji, watermark of other brands, readable fake CA addresses, score numbers, km readouts, buttons.
+
+REGION swaps: North America · United Kingdom and Ireland · South America (Brazil tilt) · North Africa Nile coast · Australia southern hemisphere · Indian subcontinent · Central Europe · Mexico / lower North America · Korean peninsula · Canada northern landmass</pre>
+                </div>
+              </span>
+            </label>
+          </li>
+        </ol>
+      </section>
+
+      <!-- 10 -->
+      <section id="after" data-phase="10">
+        <h2>10 · Aftercare</h2>
+        <p class="when">Ongoing · don’t skip</p>
+        <ol class="steps">
+          <li>
+            <label>
+              <input type="checkbox" data-id="10-monitor" />
+              <span class="body">
+                <span class="title">Watch pump + mentions 2h after go-loud</span>
+                <p class="hint">Clones / wrong CA. Correct with pin + site COPY CA.</p>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="10-clone" />
+              <span class="body">
+                <span class="title">Scam hygiene</span>
+                <p class="hint">
+                  One clear “only CA is on nuke.academy COPY CA” reply. Don’t ratio-war every fake.
+                </p>
+              </span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-id="10-dex" />
+              <span class="body">
+                <span class="title">Dexscreener chart live</span>
+                <p class="hint">
+                  <a href="https://dexscreener.com/solana/2hebcuxgablok2tfcxga2mvaxwe4ccvru5kwuhvlnfrj" target="_blank" rel="noopener">dexscreener.com/solana/2heb…nfrj</a>
+                  — BUY NUKES points here.
+                </p>
+              </span>
+            </label>
+          </li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Scratchpad</h2>
+        <p class="when">Stays in this browser only</p>
+        <label class="hint" for="ca">Mint CA</label>
+        <textarea id="ca" class="field" rows="2" placeholder="Paste mint here…"></textarea>
+        <label class="hint" for="notes">Notes</label>
+        <textarea
+          id="notes"
+          class="field notes"
+          rows="4"
+          placeholder="Side-wallet amounts, which clip is tweet 1, who posts…"
+        ></textarea>
+      </section>
+
+      <footer>
+        Not linked from the game. Bookmark it.
+        <code>https://nuke.academy/ops/launch.html</code>
+      </footer>
+    </main>
+
+    <script>
+      const KEY = 'nuke-launch-pilot-v2'
+      const state = JSON.parse(localStorage.getItem(KEY) || '{}')
+
+      const boxes = [...document.querySelectorAll('input[type=checkbox][data-id]')]
+      const bar = document.getElementById('bar')
+      const count = document.getElementById('count')
+      const ca = document.getElementById('ca')
+      const notes = document.getElementById('notes')
+      const pasteBlocks = [...document.querySelectorAll('.paste-wrap')]
+
+      function save() {
+        const checks = {}
+        for (const b of boxes) checks[b.dataset.id] = b.checked
+        localStorage.setItem(
+          KEY,
+          JSON.stringify({ checks, ca: ca.value, notes: notes.value }),
+        )
+        paint()
+      }
+
+      function paint() {
+        let n = 0
+        for (const b of boxes) {
+          b.closest('li')?.classList.toggle('done', b.checked)
+          if (b.checked) n++
+        }
+        count.textContent = `${n} / ${boxes.length}`
+        bar.style.width = `${boxes.length ? (100 * n) / boxes.length : 0}%`
+      }
+
+      for (const b of boxes) {
+        b.checked = !!state.checks?.[b.dataset.id]
+        b.addEventListener('change', save)
+      }
+      ca.value = state.ca || ''
+      notes.value = state.notes || ''
+      ca.addEventListener('input', save)
+      notes.addEventListener('input', save)
+
+      document.getElementById('reset').addEventListener('click', () => {
+        if (!confirm('Clear all checks and scratchpad on this browser?')) return
+        localStorage.removeItem(KEY)
+        for (const b of boxes) b.checked = false
+        ca.value = ''
+        notes.value = ''
+        paint()
+      })
+
+      let open = true
+      const expandBtn = document.getElementById('expand')
+      function setPasteOpen(v) {
+        open = v
+        for (const w of pasteBlocks) {
+          const pre = w.querySelector('pre.paste')
+          if (pre) pre.hidden = !open
+          const head = w.querySelector('.paste-head')
+          if (head) head.style.display = open || true ? 'flex' : 'flex'
+        }
+        // Keep heads; hide only pre bodies when collapsed
+        for (const pre of document.querySelectorAll('pre.paste')) pre.hidden = !open
+        expandBtn.textContent = open ? 'Collapse paste' : 'Expand all paste'
+      }
+      expandBtn.addEventListener('click', () => setPasteOpen(!open))
+
+      for (const btn of document.querySelectorAll('button.copy')) {
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          const wrap = btn.closest('.paste-wrap')
+          const pre = wrap?.querySelector('pre.paste')
+          if (!pre) return
+          try {
+            await navigator.clipboard.writeText(pre.textContent || '')
+            btn.textContent = 'Copied'
+            btn.classList.add('ok')
+            setTimeout(() => {
+              btn.textContent = 'Copy'
+              btn.classList.remove('ok')
+            }, 1200)
+          } catch {
+            btn.textContent = 'Fail'
+          }
+        })
+      }
+
+      paint()
+    </script>
+  </body>
+</html>

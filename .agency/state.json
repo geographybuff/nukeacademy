@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "project": "nuke",
+  "updatedAt": "2026-08-01T00:06:00Z",
+  "updatedBy": "cursor",
+  "headline": "$NUKES live — BUY NUKES → Dexscreener; CA on site; post launch thread next",
+  "momentum": "hot",
+  "changelog": [
+    {
+      "ts": "2026-08-01T00:06:00Z",
+      "summary": "Pointed VITE_DEX_URL at Dexscreener pair 2heb…nfrj; BUY NUKES + CA posts updated; redeployed",
+      "kind": "launch",
+      "surface": "onchain"
+    },
+    {
+      "ts": "2026-08-01T00:05:00Z",
+      "summary": "$NUKES mint live (…79pump); VITE_NUKE_CA + VITE_DEX_URL set on Vercel; CA baked into launch thread/ops; redeployed nuke.academy",
+      "kind": "launch",
+      "surface": "onchain"
+    },
+    {
+      "ts": "2026-07-31T19:55:00Z",
+      "summary": "Rewrote /ops/launch.html for pump.fun (no verify); baked launch thread, Day 0–2 posts, image/video prompts with copy buttons; deployed to nuke.academy",
+      "kind": "docs",
+      "surface": "ops"
+    },
+    {
+      "ts": "2026-07-31T19:40:00Z",
+      "summary": "Wrote paste-ready X launch thread + Day 0–2 posts in marketing/LAUNCH_THREAD.md",
+      "kind": "docs",
+      "surface": "social"
+    },
+    {
+      "ts": "2026-07-31T18:45:00Z",
+      "summary": "Dynamic /api/og cards with country name (and km/grade for hit shares); Edge-cached 1yr for X/Discord",
+      "kind": "feat",
+      "surface": "launch"
+    },
+    {
+      "ts": "2026-07-31T18:31:00Z",
+      "summary": "Deployed searchable country challenge picker to production",
+      "kind": "feat",
+      "surface": "launch"
+    },
+    {
+      "ts": "2026-07-31T18:30:00Z",
+      "summary": "Challenge a friend opens a searchable country picker; tap a country to share /nuke/{slug}",
+      "kind": "feat",
+      "surface": "code"
+    },
+    {
+      "ts": "2026-07-31T18:16:00Z",
+      "summary": "Deployed challenge-a-friend country deep links to production (nuke.academy)",
+      "kind": "feat",
+      "surface": "launch"
+    },
+    {
+      "ts": "2026-07-31T17:45:00Z",
+      "summary": "Challenge a friend: share /nuke/{country-slug}; deep-link assigns that exam; Web Share + clipboard; OG for bots",
+      "kind": "feat",
+      "surface": "code"
+    },
+    {
+      "ts": "2026-07-31T13:15:00Z",
+      "summary": "Added unlinked launch pilot checklist at /ops/launch.html",
+      "kind": "docs",
+      "surface": "ops"
+    }
+  ],
+  "nextSteps": [
+    {
+      "title": "Post launch thread from /ops/launch.html (video on 1/4) → pin → CA follow-up with mint → X bio website nuke.academy",
+      "surface": "social",
+      "effort": "quick",
+      "priority": 1
+    },
+    {
+      "title": "Use Content kitchen prompts to generate Day 1–2 clips/stills while chart cooks",
+      "surface": "social",
+      "effort": "session",
+      "priority": 2
+    }
+  ],
+  "milestones": [
+    {
+      "title": "Country challenge deep links (/nuke/{slug})",
+      "status": "done",
+      "progress": 1.0
+    },
+    {
+      "title": "Launch thread + Day 0–2 social pack",
+      "status": "done",
+      "progress": 1.0
+    },
+    {
+      "title": "Ops page: pump.fun runbook + content kitchen",
+      "status": "done",
+      "progress": 1.0
+    },
+    {
+      "title": "$NUKES live on pump + X pin + site CA wired",
+      "status": "in_progress",
+      "progress": 0.85
+    }
+  ],
+  "periodicTasks": [],
+  "blockers": [],
+  "forecast": "Site + CA are live. Remaining go-loud: pin thread with video, CA tweet, keep Day 0–2 posts flowing from ops page."
+}
