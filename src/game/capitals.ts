@@ -71,7 +71,7 @@ export const CAPITALS: Record<string, CapitalRecord> = {
   GIN: { lat: 9.6412, lon: -13.5784, pop: 1900000, name: {"en":"Conakry","es":"Conakri","ru":"Конакри","zh":"科纳克里","ja":"コナクリ"} },
   GMB: { lat: 13.4549, lon: -16.579, pop: 450000, name: {"en":"Banjul","es":"Banjul","ru":"Банжул","zh":"班珠尔","ja":"バンジュール"} },
   GNB: { lat: 11.8636, lon: -15.5977, pop: 500000, name: {"en":"Bissau","es":"Bisáu","ru":"Бисау","zh":"比绍","ja":"ビサウ"} },
-  GNQ: { lat: 3.7504, lon: 8.7371, pop: 300000, name: {"en":"Malabo","es":"Malabo","ru":"Малабо","zh":"马拉博","ja":"マラボ"} },
+  GNQ: { lat: 1.58889, lon: 10.8225, pop: 2000, name: {"en":"Ciudad de la Paz","es":"Ciudad de la Paz","ru":"Сьюдад-де-ла-Пас","zh":"和平城","ja":"シウダ・デ・ラ・パス"} },
   GRC: { lat: 37.9838, lon: 23.7275, pop: 3700000, name: {"en":"Athens","es":"Atenas","ru":"Афины","zh":"雅典","ja":"アテネ"} },
   GRL: { lat: 64.1814, lon: -51.6941, pop: 19000, name: {"en":"Nuuk","es":"Nuuk","ru":"Нуук","zh":"努克","ja":"ヌーク"} },
   GTM: { lat: 14.6349, lon: -90.5069, pop: 2900000, name: {"en":"Guatemala City","es":"Ciudad de Guatemala","ru":"Гватемала","zh":"危地马拉城","ja":"グアテマラシティ"} },
